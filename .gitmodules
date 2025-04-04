@@ -1,0 +1,3 @@
+[submodule "RispProtos"]
+	path = RispProtos
+	url = https://github.com/netscrawler/RispProtos.git

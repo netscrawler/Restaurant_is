@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package payment.v1;
+option go_package = "github.com/netscrawler/Restaurant_is/gen/go/payment/v1;paymentv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service PaymentService {
+  // Основные операции
+  rpc CreatePayment(PaymentRequest) returns (PaymentResponse);
+  rpc GetPaymentStatus(PaymentStatusRequest) returns (PaymentStatusResponse);
+  rpc ProcessRefund(RefundRequest) returns (RefundResponse);
+
+  // Управление поведением заглушки (для тестирования)
+  rpc SetMockBehavior(MockConfig) returns (google.protobuf.Empty);
+  rpc ResetMockBehavior(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// Статусы платежа
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;     // Ожидает обработки
+  PAYMENT_STATUS_SUCCEEDED = 2;   // Успешно завершен
+  PAYMENT_STATUS_FAILED = 3;      // Ошибка оплаты
+  PAYMENT_STATUS_REFUNDED = 4;    // Возврат средств
+}
+
+// Типы платежных методов
+enum PaymentMethodType {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_CARD = 1;        // Банковская карта
+  PAYMENT_METHOD_CASH = 2;        // Наличные
+  PAYMENT_METHOD_APPLE_PAY = 3;
+  PAYMENT_METHOD_GOOGLE_PAY = 4;
+}
+
+message PaymentRequest {
+  string order_id = 1;            // Идентификатор заказа
+  double amount = 2;              // Сумма платежа
+  PaymentMethodType method = 3;   // Способ оплаты
+  map<string, string> metadata = 4; // Дополнительные данные
+}
+
+message PaymentResponse {
+  string payment_id = 1;          // Уникальный идентификатор платежа
+  string status = 2;              // Текущий статус
+  string details = 3;             // Детализация (для ошибок)
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message PaymentStatusRequest {
+  string payment_id = 1;
+}
+
+message PaymentStatusResponse {
+  PaymentStatus status = 1;
+  string error_message = 2;       // Причина ошибки, если есть
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message RefundRequest {
+  string payment_id = 1;
+  double amount = 2;              // Сумма для возврата
+  string reason = 3;              // Причина возврата
+}
+
+message RefundResponse {
+  string refund_id = 1;
+  PaymentStatus status = 2;
+  google.protobuf.Timestamp processed_at = 3;
+}
+
+// Конфигурация поведения заглушки
+message MockConfig {
+  // Процент успешных платежей (0-100)
+  int32 success_rate = 1;
+
+  // Фиксированный ответ (если задан, success_rate игнорируется)
+  optional PaymentStatus fixed_status = 2;
+
+  // Задержка ответа в миллисекундах
+  int32 response_delay_ms = 3;
+
+  // Регулярное выражение для ошибок по метаданным
+  string error_pattern = 4;       // Пример: ".*TEST_FAIL.*"
+
+  // Автоматическое время ответа
+  bool auto_approve_refunds = 5;  // Авто-подтверждение возвратов
+}
+

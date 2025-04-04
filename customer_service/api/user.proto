@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package user.v1;
+option go_package = "github.com/your-project/gen/go/user/v1;userv1";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service UserService {
+  // Пользователи (клиенты)
+  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+  rpc GetUser(GetUserRequest) returns (UserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // Сотрудники
+  rpc CreateStaff(CreateStaffRequest) returns (StaffResponse);
+  rpc UpdateStaff(UpdateStaffRequest) returns (StaffResponse);
+  rpc ListStaff(ListStaffRequest) returns (ListStaffResponse);
+
+  // Роли
+  rpc AssignRole(AssignRoleRequest) returns (google.protobuf.Empty);
+  rpc RevokeRole(RevokeRoleRequest) returns (google.protobuf.Empty);
+}
+
+// Основные сообщения
+
+message User {
+  int64 id = 1;
+  string email = 2;
+  string phone = 3;
+  string full_name = 4;
+  bool is_active = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  repeated string roles = 8;
+}
+
+message Staff {
+  int64 id = 1;
+  string work_email = 2;
+  string work_phone = 3;
+  string full_name = 4;
+  string position = 5;
+  bool is_active = 6;
+  google.protobuf.Timestamp hire_date = 7;
+  repeated string roles = 8;
+}
+
+// Запросы/Ответы
+
+message CreateUserRequest {
+  string email = 1;
+  string phone = 2;
+  string full_name = 3;
+  string password = 4; // Хешируется на сервере
+}
+
+message GetUserRequest {
+  oneof identifier {
+    int64 id = 1;
+    string email = 2;
+    string phone = 3;
+  }
+}
+
+message UpdateUserRequest {
+  int64 id = 1;
+  optional string email = 2;
+  optional string phone = 3;
+  optional string full_name = 4;
+  optional bool is_active = 5;
+}
+
+message DeleteUserRequest {
+  int64 id = 1;
+}
+
+message ListUsersRequest {
+  optional bool only_active = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total_count = 2;
+}
+
+message CreateStaffRequest {
+  string work_email = 1;
+  string work_phone = 2;
+  string full_name = 3;
+  string position = 4;
+  string password = 5;
+}
+
+message UpdateStaffRequest {
+  int64 id = 1;
+  optional string work_phone = 2;
+  optional string position = 3;
+  optional bool is_active = 4;
+}
+
+message ListStaffRequest {
+  optional bool only_active = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListStaffResponse {
+  repeated Staff staff = 1;
+  int32 total_count = 2;
+}
+
+message AssignRoleRequest {
+  int64 user_id = 1;
+  string role = 2;
+  bool is_staff = 3; // true для сотрудников
+}
+
+message RevokeRoleRequest {
+  int64 user_id = 1;
+  string role = 2;
+  bool is_staff = 3;
+}
+
+// Ответы
+
+message UserResponse {
+  User user = 1;
+}
+
+message StaffResponse {
+  Staff staff = 1;
+}

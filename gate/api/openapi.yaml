@@ -1,0 +1,263 @@
+openapi: 3.0.3
+info:
+  title: Restaurant Management API
+  version: 1.0.0
+  description: API Gateway for restaurant management system
+servers:
+  - url: https://api.your-restaurant.com/api/v1
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Menu
+    description: Menu management
+  - name: Orders
+    description: Order processing
+  - name: Payments
+    description: Payment operations
+
+paths:
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+
+  /menu/active:
+    get:
+      tags: [Menu]
+      summary: Get active menu
+      responses:
+        200:
+          description: Active menu data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuResponse"
+        404:
+          $ref: "#/components/responses/NotFound"
+
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create new order
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+      responses:
+        201:
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+
+  /orders/{order_id}:
+    get:
+      tags: [Orders]
+      summary: Get order details
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        404:
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required: [email, password]
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+        user:
+          $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        roles:
+          type: array
+          items:
+            type: string
+        email:
+          type: string
+
+    MenuResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        dishes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dish"
+
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: float
+        image_url:
+          type: string
+
+    OrderRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [dine-in, delivery, takeaway]
+        delivery_address:
+          type: object
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemRequest"
+      required: [type, items]
+
+    OrderItemRequest:
+      type: object
+      properties:
+        dish_id:
+          type: integer
+        quantity:
+          type: integer
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        total_amount:
+          type: number
+          format: float
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        total_amount:
+          type: number
+          format: float
+
+    OrderItem:
+      type: object
+      properties:
+        dish_id:
+          type: integer
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: float
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid credentials"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Resource not found"
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid request parameters"

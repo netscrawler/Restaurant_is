@@ -228,13 +228,50 @@ CREATE INDEX idx_payments_order ON payments(order_id);
 **PaymentServiceDB:**
 
 ```sql
-CREATE TABLE payments (
-    id SERIAL PRIMARY KEY,
-    order_id INT,
-    amount DECIMAL(10,2),
-    status VARCHAR(50),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TYPE payment_status AS ENUM (
+    'pending',      -- Платеж инициирован
+    'succeeded',    -- Успешно завершен
+    'failed',       -- Ошибка оплаты
+    'refunded'      -- Средства возвращены
 );
+
+CREATE TYPE payment_method_type AS ENUM (
+    'card',         -- Банковская карта
+    'cash',         -- Наличные (для самовывоза)
+);
+
+CREATE TABLE payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL,                   -- Ссылка на заказ в OrderService
+    amount NUMERIC(10, 2) NOT NULL
+        CHECK (amount > 0),
+    currency VARCHAR(3) NOT NULL
+        DEFAULT 'RUB',
+    status payment_status NOT NULL
+        DEFAULT 'pending',
+    error_message TEXT,                       -- Причина ошибки: "Insufficient funds"
+    method payment_method_type NOT NULL,
+    external_id VARCHAR(255) UNIQUE,          -- ID транзакции в платежном шлюзе (Stripe/YooKassa)
+    metadata JSONB,                           -- Доп. данные: {"ip": "192.168.0.1", "user_agent": "..."}
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_payments_order ON payments(order_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_external_id ON payments(external_id);
+
+
+CREATE TABLE payment_methods (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id INT NOT NULL,                     -- ID клиента из UserService
+    method_type payment_method_type NOT NULL,
+    token VARCHAR(500) NOT NULL,              -- Зашифрованные данные карты/кошелька
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_payment_methods_user ON payment_methods(user_id);
 ```
 
 == Implementation

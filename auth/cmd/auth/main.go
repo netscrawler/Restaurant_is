@@ -27,6 +27,7 @@ func setupLogger(env string) (*zap.Logger, error) {
 	switch env {
 	case local:
 		log, err = zap.NewDevelopment()
+		// log, err = zap.NewProduction()
 	case dev:
 		log, err = zap.NewProduction()
 	case prod:

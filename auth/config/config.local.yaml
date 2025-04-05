@@ -1,0 +1,25 @@
+env: "local"
+
+db:
+  type: "postgres"
+  port: 5432
+  host: "localhost"
+  user: "postgres"
+  password: "postgres"
+  name: "auth"
+  ssl_mode: "disable"
+  pool_max_conn: 20
+  pool_max_conn_lifetime: "2h"
+
+grpc_server:
+  address: ":50051"
+
+yandex_o_auth:
+  yandex_client_id: "your_yandex_app_id"
+  yandex_client_secret: "your_yandex_app_secret"
+  yandex_redirect_url: "https://your-domain.com/auth/yandex/callback"
+
+jwt:
+  jwt_secret: "very_strong_secret_key_here!"
+  access_duration: "15m"
+  refresh_duration: "720h"

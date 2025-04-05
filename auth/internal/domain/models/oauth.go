@@ -3,10 +3,9 @@ package models
 import "time"
 
 type OAuthProvider struct {
-	UserID         int64
-	ProviderName   string
-	ProviderUserID string
-	AccessToken    string
-	RefreshToken   string
-	ExpiresAt      time.Time
+	ClientID    string
+	Provider    string // google, yandex
+	ProviderID  string
+	AccessToken string
+	ExpiresAt   time.Time
 }

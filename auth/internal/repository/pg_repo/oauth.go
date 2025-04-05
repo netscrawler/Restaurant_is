@@ -20,49 +20,22 @@ func NewPgOauth(db *postgres.Storage, log *zap.Logger) *pgOauth {
 	}
 }
 
-func (p *pgOauth) Create(ctx context.Context, token *models.RefreshToken) error {
-	panic("not implemented") // TODO: Implement
-}
-
-func (p *pgOauth) GetByToken(ctx context.Context, token string) (*models.RefreshToken, error) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (p *pgOauth) Revoke(ctx context.Context, token string) error {
-	panic("not implemented") // TODO: Implement
-}
-
-func (p *pgOauth) RevokeAllForUser(ctx context.Context, userID int64) error {
-	panic("not implemented") // TODO: Implement
-}
-
-func (p *pgOauth) DeleteExpired(ctx context.Context) error {
-	panic("not implemented") // TODO: Implement
-}
-
 func (p *pgOauth) LinkAccount(
 	ctx context.Context,
-	userID int64,
+	clientID string,
 	provider *models.OAuthProvider,
 ) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (p *pgOauth) GetByProviderID(
+func (p *pgOauth) GetByProvider(
 	ctx context.Context,
-	providerName string,
+	provider string,
 	providerID string,
 ) (*models.OAuthProvider, error) {
 	panic("not implemented") // TODO: Implement
 }
 
-func (p *pgOauth) GetUserProviders(
-	ctx context.Context,
-	userID int64,
-) ([]*models.OAuthProvider, error) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (p *pgOauth) UnlinkAccount(ctx context.Context, userID int64, providerName string) error {
+func (p *pgOauth) UnlinkAccount(ctx context.Context, clientID string, provider string) error {
 	panic("not implemented") // TODO: Implement
 }

@@ -4,7 +4,8 @@ import "time"
 
 type RefreshToken struct {
 	Token     string
-	UserID    int64
+	UserID    string
+	UserType  UserType // client/staff
 	ExpiresAt time.Time
 	Revoked   bool
 	CreatedAt time.Time

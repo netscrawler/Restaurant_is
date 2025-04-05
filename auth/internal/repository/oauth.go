@@ -6,12 +6,19 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 )
 
-type OAuthProviderRepository interface {
-	LinkAccount(ctx context.Context, userID int64, provider *models.OAuthProvider) error
-	GetByProviderID(
-		ctx context.Context,
-		providerName, providerID string,
-	) (*models.OAuthProvider, error)
-	GetUserProviders(ctx context.Context, userID int64) ([]*models.OAuthProvider, error)
-	UnlinkAccount(ctx context.Context, userID int64, providerName string) error
+// OAuthRepository - работа с OAuth-привязками
+type OAuthRepository interface {
+	LinkAccount(ctx context.Context, clientID string, provider *models.OAuthProvider) error
+	GetByProvider(ctx context.Context, provider, providerID string) (*models.OAuthProvider, error)
+	UnlinkAccount(ctx context.Context, clientID, provider string) error
+}
+
+type OAuth struct {
+	OAuthRepository
+}
+
+func NewOAuth(repo OAuthRepository) *OAuth {
+	return &OAuth{
+		OAuthRepository: repo,
+	}
 }

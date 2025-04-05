@@ -2,13 +2,11 @@ package models
 
 import "time"
 
-type User struct {
-	ID           int64
-	AccountType  string
-	Email        string
+type Staff struct {
+	ID           string // UUID
 	WorkEmail    string
-	Phone        string
 	PasswordHash string
+	Position     string
 	IsActive     bool
 	CreatedAt    time.Time
 	UpdatedAt    time.Time

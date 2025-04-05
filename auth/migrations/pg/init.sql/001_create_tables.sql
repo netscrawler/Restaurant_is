@@ -1,83 +1,59 @@
 ---------------------------
--- 1. Таблица типов аккаунтов
+-- 1. Таблица пользователей (клиенты)
 ---------------------------
-CREATE TABLE account_types (
-    id SMALLSERIAL PRIMARY KEY,
-    type_name VARCHAR(50) UNIQUE NOT NULL
-);
-
----------------------------
--- 2. Таблица ролей
----------------------------
-CREATE TABLE roles (
-    id SMALLSERIAL PRIMARY KEY,
-    role_name VARCHAR(50) UNIQUE NOT NULL
-);
-
----------------------------
--- 3. Таблица пользователей
----------------------------
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    account_type_id SMALLINT NOT NULL REFERENCES account_types(id),
-    email VARCHAR(255) UNIQUE,
-    work_email VARCHAR(255) UNIQUE,
-    phone VARCHAR(20) UNIQUE,
+CREATE TABLE clients (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-
-    -- Проверки для разных типов аккаунтов
-    CONSTRAINT email_check CHECK (
-        (account_type_id = 1 AND email IS NOT NULL) OR  -- USER
-        (account_type_id = 2 AND work_email IS NOT NULL) -- STAFF
-    )
-);
-
--- Индексы
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_work_email ON users(work_email);
-
----------------------------
--- 4. Связь пользователей с ролями
----------------------------
-CREATE TABLE user_roles (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role_id SMALLINT NOT NULL REFERENCES roles(id),
-    PRIMARY KEY (user_id, role_id)
+    updated_at TIMESTAMPTZ
 );
 
 ---------------------------
--- 5. OAuth-провайдеры
+-- 2. Таблица сотрудников (ресторан)
+---------------------------
+CREATE TABLE staff (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+---------------------------
+-- 3. OAuth-провайдеры (для клиентов)
 ---------------------------
 CREATE TABLE oauth_providers (
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider VARCHAR(50) NOT NULL, -- yandex, google и т.д.
-    provider_user_id VARCHAR(255) NOT NULL,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL CHECK (provider IN ('yandex', 'google')),
+    provider_id VARCHAR(255) NOT NULL,
     access_token TEXT NOT NULL,
-    refresh_token TEXT,
-    expires_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, provider)
+    PRIMARY KEY (client_id, provider)
 );
 
 ---------------------------
--- 6. Refresh-токены
+-- 4. Refresh-токены (общая таблица)
 ---------------------------
 CREATE TABLE refresh_tokens (
     token TEXT PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL, -- Может ссылаться на clients.id или staff.id
+    user_type VARCHAR(10) NOT NULL CHECK (user_type IN ('client', 'staff')),
     expires_at TIMESTAMPTZ NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ---------------------------
--- 7. Данные курьеров (только для STAFF)
+-- 5. Аудит авторизации
 ---------------------------
-CREATE TABLE courier_details (
-    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    vehicle_type VARCHAR(50),      -- Тип транспорта: car, bike, scooter
-    vehicle_number VARCHAR(20),    -- Номер транспорта
-    work_zone VARCHAR(255)         -- Зона работы
+CREATE TABLE auth_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    user_type VARCHAR(10) NOT NULL CHECK (user_type IN ('client', 'staff')),
+    action VARCHAR(20) NOT NULL CHECK (action IN ('login', 'logout', 'token_refresh')),
+    ip_address INET NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

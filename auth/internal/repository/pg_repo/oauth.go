@@ -25,6 +25,8 @@ func (p *pgOauth) LinkAccount(
 	clientID string,
 	provider *models.OAuthProvider,
 ) error {
+	const op = "repository.pg.OAuth.LinkAccount"
+
 	panic("not implemented") // TODO: Implement
 }
 

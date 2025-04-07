@@ -9,7 +9,7 @@ CREATE TABLE clients (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
-
+--TODO: Добавить номер телефона в таблицы
 ---------------------------
 -- 2. Таблица сотрудников (ресторан)
 ---------------------------
@@ -49,11 +49,11 @@ CREATE TABLE refresh_tokens (
 -- 5. Аудит авторизации
 ---------------------------
 CREATE TABLE auth_logs (
-    id BIGSERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,         -- ID из таблицы clients/staff
     user_type VARCHAR(10) NOT NULL CHECK (user_type IN ('client', 'staff')),
-    action VARCHAR(20) NOT NULL CHECK (action IN ('login', 'logout', 'token_refresh')),
-    ip_address INET NOT NULL,
+    action VARCHAR(20) NOT NULL CHECK (action IN ('login', 'logout', 'token_refresh', 'token_revoke')),
+    ip_address VARCHAR(45) NOT NULL,
     user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -11,37 +11,37 @@ import (
 )
 
 type Config struct {
-	Env         string         `yaml:"env"           env:"ENV"                env-default:"local"`
-	DB          DatabaseConfig `yaml:"db"            env:"DATABASE_CONFIG"`
-	GRPCServer  gRPC           `yaml:"grpc_server"   env:"GRPC_SERVER_CONFIG"`
-	YandexOAuth YandexOAuth    `yaml:"yandex_o_auth" env:"YANDEX_O_AUTH"`
-	JWT         JWT            `yaml:"jwt"           env:"JWT"`
+	Env         string         `yaml:"env"         env:"ENV"                env-default:"local"`
+	DB          DatabaseConfig `yaml:"db"          env:"DATABASE_CONFIG"`
+	GRPCServer  gRPC           `yaml:"grpcServer"  env:"GRPC_SERVER_CONFIG"`
+	YandexOAuth YandexOAuth    `yaml:"yandexOAuth" env:"YANDEX_O_AUTH"`
+	JWT         JWT            `yaml:"jwt"         env:"JWT"`
 }
 
 type DatabaseConfig struct {
-	Type                string        `yaml:"type"                   env:"DATABASE_TYPE"          env-default:"postgres"`
-	Port                int           `yaml:"port"                   env:"DATABASE_PORT"          env-default:"5432"`
-	Host                string        `yaml:"host"                   env:"DATABASE_HOST"          env-default:"localhost"`
-	User                string        `yaml:"user"                   env:"DATABASE_USER"          env-default:"user"`
-	Password            string        `yaml:"password"               env:"DATABASE_PASSWORD"      env-default:"password"`
-	Name                string        `yaml:"name"                   env:"DATABASE_NAME"          env-default:"postgres"`
-	SSLMode             string        `yaml:"ssl_mode"               env:"SSL_MODE"               env-default:"false"`
-	PoolMaxConn         int           `yaml:"pool_max_conn"          env:"POOL_MAX_CONN"          env-default:"10"`
-	PoolMaxConnLifetime time.Duration `yaml:"pool_max_conn_lifetime" env:"POOL_MAX_CONN_LIFETIME" env-default:"1h30m"`
+	Type                string        `yaml:"type"                env:"DATABASE_TYPE"          env-default:"postgres"`
+	Port                int           `yaml:"port"                env:"DATABASE_PORT"          env-default:"5432"`
+	Host                string        `yaml:"host"                env:"DATABASE_HOST"          env-default:"localhost"`
+	User                string        `yaml:"user"                env:"DATABASE_USER"          env-default:"user"`
+	Password            string        `yaml:"password"            env:"DATABASE_PASSWORD"      env-default:"password"`
+	Name                string        `yaml:"name"                env:"DATABASE_NAME"          env-default:"postgres"`
+	SSLMode             string        `yaml:"sslMode"             env:"SSL_MODE"               env-default:"false"`
+	PoolMaxConn         int           `yaml:"poolMaxConn"         env:"POOL_MAX_CONN"          env-default:"10"`
+	PoolMaxConnLifetime time.Duration `yaml:"poolMaxConnLifetime" env:"POOL_MAX_CONN_LIFETIME" env-default:"1h30m"`
 }
 type gRPC struct {
 	Address string `yaml:"address" env:"address" env-default:"address"`
 }
 type YandexOAuth struct {
-	ClientID     string `yaml:"yandex_client_id"     env:"YANDEX_CLIENT_ID"`
-	ClientSecret string `yaml:"yandex_client_secret" env:"YANDEX_CLIENT_SECRET"`
-	RedirectURL  string `yaml:"yandex_redirect_url"  env:"YANDEX_REDIRECT_URL"`
+	ClientID     string `yaml:"yandexClientId"     env:"YANDEX_CLIENT_ID"`
+	ClientSecret string `yaml:"yandexClientSecret" env:"YANDEX_CLIENT_SECRET"`
+	RedirectURL  string `yaml:"yandexRedirectUrl"  env:"YANDEX_REDIRECT_URL"`
 }
 
 type JWT struct {
-	Secret          string        `yaml:"jwt_secret"       env:"JWT_SECRET"`
-	AccessDuration  time.Duration `yaml:"access_duration"  env:"JWT_ACCESS_DURATION"  env-default:"15m"`
-	RefreshDuration time.Duration `yaml:"refresh_duration" env:"JWT_REFRESH_DURATION" env-default:"720h"` // 30 days
+	Secret          string        `yaml:"jwtSecret"       env:"JWT_SECRET"`
+	AccessDuration  time.Duration `yaml:"accessDuration"  env:"JWT_ACCESS_DURATION"  env-default:"15m"`
+	RefreshDuration time.Duration `yaml:"refreshDuration" env:"JWT_REFRESH_DURATION" env-default:"720h"` // 30 days
 }
 
 func MustLoad() *Config {
@@ -79,7 +79,7 @@ func fetchConfigPath() string {
 	return res
 }
 
-func (db *DatabaseConfig) GetUrl() string {
+func (db *DatabaseConfig) GetURL() string {
 	encodedPassword := url.QueryEscape(db.Password)
 
 	return fmt.Sprintf(

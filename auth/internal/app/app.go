@@ -17,12 +17,14 @@ type App struct {
 func New(log *zap.Logger, cfg config.Config) *App {
 	const op = "app.New"
 
-	// TODO: implement new app logic.
+	db := postgres.MustSetup(context.Background(), cfg.DB.GetURL(), log)
+	gRPCServ := grpcapp.New(log, nil, cfg.GRPCServer.Port)
+
 	return &App{
 		log:      log,
-		gRPCServ: &grpcapp.App{},
-		db:       &postgres.Storage{},
-		cfg:      &config.Config{},
+		gRPCServ: gRPCServ,
+		db:       db,
+		cfg:      &cfg,
 	}
 }
 

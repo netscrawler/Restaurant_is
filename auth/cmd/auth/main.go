@@ -5,6 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/netscrawler/Restaurant_is/auth/internal/app"
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	"go.uber.org/zap"
 )
@@ -24,12 +25,20 @@ func main() {
 	}
 
 	log.Debug("start with config", zap.Any("config", cfg))
+
+	application := app.New(log, *cfg)
+	go func() {
+		if err := application.Run(); err != nil {
+			log.Fatal("failed to run application", zap.Error(err))
+		}
+	}()
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	<-stop
 
-	// application.GRPCServer.Stop()
+	application.Stop()
 }
 
 func setupLogger(env string) (*zap.Logger, error) {

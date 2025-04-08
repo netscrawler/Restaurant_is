@@ -85,6 +85,25 @@ func (a *AuthService) LoginClinetInit(ctx context.Context, phone string) error {
 	return nil
 }
 
-func (a *AuthService) LoginClientConfirm(ctx context.Context, phone string) (string, error) {
-	return "", nil
+func (a *AuthService) LoginClientConfirm(ctx context.Context, phone string, code int) (string, string, error) {
+	const op = "service.Auth.LoginClientConfirm"
+
+	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
+	if err != nil {
+		return "", "", domain.ErrNotFound
+	}
+
+	storedCode, exists := a.codeProvider.Get(user.ID)
+	if !exists || storedCode != code {
+		return "", "", domain.ErrInvalidCode
+	}
+
+	a.codeProvider.Delete(user.ID)
+
+	accessToken, refreshToken, err := a.jwtManager.GenerateTokenPair(user.ID.String(), "client", []string{"client"})
+	if err != nil {
+		return "", "", domain.ErrInternal
+	}
+
+	return accessToken, refreshToken, nil
 }

@@ -20,7 +20,8 @@ func New(log *zap.Logger, cfg config.Config) *App {
 	const op = "app.New"
 
 	db := postgres.MustSetup(context.Background(), cfg.DB.GetURL(), log)
-	gRPCServ := grpcapp.New(log, nil, cfg.GRPCServer.Port)
+	authService := // Initialize authService here
+	gRPCServ := grpcapp.New(log, authService, cfg.GRPCServer.Port)
 
 	return &App{
 		log:      log,

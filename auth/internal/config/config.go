@@ -31,7 +31,7 @@ type DatabaseConfig struct {
 }
 type gRPC struct {
 	Address string `yaml:"address" env:"address" env-default:"address"`
-	Port    int    `yaml:port`
+	Port    int    `yaml:"port" env:"port"`
 }
 type YandexOAuth struct {
 	ClientID     string `yaml:"yandexClientId"     env:"YANDEX_CLIENT_ID"`

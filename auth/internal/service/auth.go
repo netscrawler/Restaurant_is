@@ -54,7 +54,7 @@ func NewAuthService(
 	}
 }
 
-func (a *AuthService) LoginClinetInit(ctx context.Context, phone string) error {
+func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 	const op = "service.Auth.LoginInit"
 
 	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
@@ -65,7 +65,7 @@ func (a *AuthService) LoginClinetInit(ctx context.Context, phone string) error {
 		user = models.NewClient(phone)
 
 		err = a.clientRepo.CreateClient(ctx, user)
-		if err != nil {
+		if (err != nil) {
 			return domain.ErrInternal
 		}
 	case err != nil:

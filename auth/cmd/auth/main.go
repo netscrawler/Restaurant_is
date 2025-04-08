@@ -45,14 +45,14 @@ func setupLogger(env string) (*zap.Logger, error) {
 	var log *zap.Logger
 
 	var err error
-	// TODO: Разграничить уровни логгирования
 	switch env {
 	case local:
 		log, err = zap.NewDevelopment()
-		// log, err = zap.NewProduction()
 	case dev:
 		log, err = zap.NewProduction()
 	case prod:
+		log, err = zap.NewProduction()
+	default:
 		log, err = zap.NewProduction()
 	}
 

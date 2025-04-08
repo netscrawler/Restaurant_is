@@ -35,7 +35,7 @@ func Register(gRPCServer *grpc.Server, auth Auth) {
 func (s *serverAPI) LoginClient(
 	ctx context.Context,
 	in *authv1.LoginClientRequest,
-) (*authv1.LoginResponse, error) {
+) (*authv1.LoginInitResponse, error) {
 	return s.auth.LoginClient(ctx, in)
 }
 

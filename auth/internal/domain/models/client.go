@@ -1,14 +1,27 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Client struct {
-	ID           string // UUID
-	Email        string
-	PasswordHash string
-	Phone        string
-	FullName     string
-	IsActive     bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        uuid.UUID // UUID
+	Phone     string
+	IsActive  bool
+	CreatedAt time.Time
+}
+
+func NewClient(phone string) *Client {
+	defer func() { recover() }()
+
+	uid := uuid.New()
+
+	return &Client{
+		ID:        uid,
+		Phone:     phone,
+		IsActive:  true,
+		CreatedAt: time.Now(),
+	}
 }

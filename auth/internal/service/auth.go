@@ -2,27 +2,47 @@ package service
 
 import (
 	"context"
+	"errors"
 
+	"github.com/google/uuid"
+	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
+	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
-	pb "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
+	"go.uber.org/zap"
 )
 
+type NotifySender interface {
+	Send(ctx context.Context, to string, msg string)
+}
+type CodeProvider interface {
+	Set(user uuid.UUID, code int)
+	Get(user uuid.UUID) (int, bool)
+	Delete(user uuid.UUID)
+}
+
 type AuthService struct {
-	pb.UnimplementedAuthServiceServer
-	clientRepo repository.ClientRepository
-	staffRepo  repository.StaffRepository
-	tokenRepo  repository.TokenRepository
-	oauthRepo  repository.OAuthRepository
-	// jwtManager  *utils.JWTManager
+	log          *zap.Logger
+	clientRepo   repository.ClientRepository
+	staffRepo    repository.StaffRepository
+	tokenRepo    repository.TokenRepository
+	oauthRepo    repository.OAuthRepository
+	notify       NotifySender
+	codeProvider CodeProvider
+	jwtManager   *utils.JWTManager
 	// oauthYandex *utils.YandexOAuth
+	// codeCache *codeCache
 }
 
 func NewAuthService(
+	log *zap.Logger,
 	clientRepo repository.ClientRepository,
 	staffRepo repository.StaffRepository,
 	tokenRepo repository.TokenRepository,
 	oauthRepo repository.OAuthRepository,
-	// jwtManager *utils.JWTManager,
+	notifySender NotifySender,
+	codeProvider CodeProvider,
+	jwtManager *utils.JWTManager,
 	// oauthYandex *utils.YandexOAuth,
 ) *AuthService {
 	return &AuthService{
@@ -30,57 +50,45 @@ func NewAuthService(
 		staffRepo:  staffRepo,
 		tokenRepo:  tokenRepo,
 		oauthRepo:  oauthRepo,
-		// jwtManager:  jwtManager,
+		jwtManager: jwtManager,
 		// oauthYandex: oauthYandex,
+		notify:       notifySender,
+		log:          log,
+		codeProvider: codeProvider,
 	}
 }
 
-func (s *AuthService) LoginClient(
-	ctx context.Context,
-	req *pb.LoginClientRequest,
-) (*pb.LoginResponse, error) {
-	// Реализация
-	// 1. Поиск клиента
-	// 2. Проверка пароля
-	// 3. Генерация токенов
-	// 4. Запись в аудит
-	panic("implement me")
+func (a *AuthService) LoginClinetInit(ctx context.Context, phone string) error {
+	const op = "service.Auth.LoginInit"
+
+	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
+
+	switch {
+	case errors.Is(err, domain.ErrNotFound):
+		a.log.Info(op+"not found client, creating new", zap.String("phone", phone))
+		user = models.NewClient(phone)
+
+		err = a.clientRepo.CreateClient(ctx, user)
+		if err != nil {
+			return domain.ErrInternal
+		}
+	case err != nil:
+		return domain.ErrInternal
+	default:
+	}
+
+	code, err := utils.GenerateSecureCode()
+	if err != nil {
+		return domain.ErrFailedCreateCode
+	}
+
+	a.codeProvider.Set(user.ID, code)
+	// Todo: add token cache.
+	go a.notify.Send(ctx, phone, models.NewCodeMsg(code).String())
+
+	return nil
 }
 
-func (s *AuthService) LoginStaff(
-	ctx context.Context,
-	req *pb.LoginStaffRequest,
-) (*pb.LoginResponse, error) {
-	// Реализация
-	// Аналогично клиенту, но для сотрудников
-
-	panic("implement me")
-}
-
-func (s *AuthService) LoginYandex(
-	ctx context.Context,
-	req *pb.OAuthYandexRequest,
-) (*pb.LoginResponse, error) {
-	// Реализация
-	// 1. Обмен кода на токен
-	// 2. Получение данных пользователя
-	// 3. Создание/обновление локальной записи
-	// 4. Генерация JWT
-	panic("implement me")
-}
-
-func (s *AuthService) Validate(
-	ctx context.Context,
-	req *pb.ValidateRequest,
-) (*pb.ValidateResponse, error) {
-	// Реализация
-	panic("implement me")
-}
-
-func (s *AuthService) Refresh(
-	ctx context.Context,
-	req *pb.RefreshRequest,
-) (*pb.LoginResponse, error) {
-	// Реализация
-	panic("implement me")
+func (a *AuthService) LoginClientConfirm(ctx context.Context, phone string) (string, error) {
+	return nil, nil
 }

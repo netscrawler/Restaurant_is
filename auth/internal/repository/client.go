@@ -9,9 +9,8 @@ import (
 // ClientRepository - работа с клиентами
 type ClientRepository interface {
 	CreateClient(ctx context.Context, client *models.Client) error
-	GetClientByEmail(ctx context.Context, email string) (*models.Client, error)
-	UpdateClientPassword(ctx context.Context, email, newHash string) error
-	DeactivateClient(ctx context.Context, email string) error
+	GetClientByPhone(ctx context.Context, phone string) (*models.Client, error)
+	DeactivateClient(ctx context.Context, phone string) error
 }
 
 type Client struct {

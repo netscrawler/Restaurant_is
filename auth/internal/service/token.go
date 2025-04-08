@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 	pb "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
 )
 
@@ -32,6 +32,6 @@ func (s *TokenService) generateAccessToken(
 	panic("implement me")
 }
 
-func (s *TokenService) ValidateToken(tokenString string) (*models.Claims, error) {
+func (s *TokenService) ValidateToken(tokenString string) (*utils.Claims, error) {
 	panic("implement me")
 }

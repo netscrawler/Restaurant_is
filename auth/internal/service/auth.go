@@ -30,8 +30,6 @@ type AuthService struct {
 	notify       NotifySender
 	codeProvider CodeProvider
 	jwtManager   *utils.JWTManager
-	// oauthYandex *utils.YandexOAuth
-	// codeCache *codeCache
 }
 
 func NewAuthService(
@@ -43,15 +41,13 @@ func NewAuthService(
 	notifySender NotifySender,
 	codeProvider CodeProvider,
 	jwtManager *utils.JWTManager,
-	// oauthYandex *utils.YandexOAuth,
 ) *AuthService {
 	return &AuthService{
-		clientRepo: clientRepo,
-		staffRepo:  staffRepo,
-		tokenRepo:  tokenRepo,
-		oauthRepo:  oauthRepo,
-		jwtManager: jwtManager,
-		// oauthYandex: oauthYandex,
+		clientRepo:   clientRepo,
+		staffRepo:    staffRepo,
+		tokenRepo:    tokenRepo,
+		oauthRepo:    oauthRepo,
+		jwtManager:   jwtManager,
 		notify:       notifySender,
 		log:          log,
 		codeProvider: codeProvider,
@@ -90,5 +86,5 @@ func (a *AuthService) LoginClinetInit(ctx context.Context, phone string) error {
 }
 
 func (a *AuthService) LoginClientConfirm(ctx context.Context, phone string) (string, error) {
-	return nil, nil
+	return "", nil
 }

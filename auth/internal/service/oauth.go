@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	pb "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
@@ -18,7 +17,11 @@ type OAuthService struct {
 	config     *oauth2.Config
 }
 
-func NewOAuthService(oauthRepo repository.OAuthRepository, clientRepo repository.ClientRepository, clientID, clientSecret, redirectURL string) *OAuthService {
+func NewOAuthService(
+	oauthRepo repository.OAuthRepository,
+	clientRepo repository.ClientRepository,
+	clientID, clientSecret, redirectURL string,
+) *OAuthService {
 	return &OAuthService{
 		oauthRepo:  oauthRepo,
 		clientRepo: clientRepo,

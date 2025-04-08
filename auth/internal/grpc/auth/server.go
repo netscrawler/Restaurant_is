@@ -8,7 +8,15 @@ import (
 )
 
 type Auth interface {
-	LoginClient(ctx context.Context, req *authv1.LoginClientRequest) (*authv1.LoginResponse, error)
+	LoginClient(
+		ctx context.Context,
+		req *authv1.LoginClientRequest,
+	) (*authv1.LoginInitResponse, error)
+
+	LoginClientConfirm(
+		context.Context,
+		*authv1.LoginClientConfirmRequest,
+	) (*authv1.LoginResponse, error)
 	LoginStaff(ctx context.Context, req *authv1.LoginStaffRequest) (*authv1.LoginResponse, error)
 	LoginYandex(ctx context.Context, req *authv1.OAuthYandexRequest) (*authv1.LoginResponse, error)
 	Validate(ctx context.Context, req *authv1.ValidateRequest) (*authv1.ValidateResponse, error)

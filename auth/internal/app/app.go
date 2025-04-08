@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	grpcapp "github.com/netscrawler/Restaurant_is/auth/internal/app/grpc"
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"

@@ -18,7 +18,7 @@ type pgClient struct {
 	db  *postgres.Storage
 }
 
-func NewPgUser(db *postgres.Storage, log *zap.Logger) *pgClient {
+func NewPgClient(db *postgres.Storage, log *zap.Logger) *pgClient {
 	return &pgClient{
 		log: log,
 		db:  db,
@@ -33,14 +33,14 @@ func (p *pgClient) CreateClient(ctx context.Context, client *models.Client) erro
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
 	return nil
@@ -69,7 +69,8 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 
 	row := p.db.DB.QueryRow(ctx, query, args...)
 
-	client := models.Client{}
+	client := new(models.Client)
+
 	err = row.Scan(
 		&client.ID,
 		&client.Phone,
@@ -77,9 +78,7 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 		&client.CreatedAt,
 	)
 	if err != nil {
-
 		if errors.Is(err, pgx.ErrNoRows) {
-
 			p.log.Info(op+"client not found", zap.String("phone", phone))
 
 			return nil, domain.ErrNotFound
@@ -87,10 +86,10 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return nil, err
+		return nil, fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
-	return &client, nil
+	return client, nil
 }
 
 func (p *pgClient) DeactivateClient(ctx context.Context, phone string) error {
@@ -103,14 +102,14 @@ func (p *pgClient) DeactivateClient(ctx context.Context, phone string) error {
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
+
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
 	p.log.Info(op+"client deactivated", zap.String("email", phone))

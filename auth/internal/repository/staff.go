@@ -6,7 +6,6 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 )
 
-// StaffRepository - работа с сотрудниками
 type StaffRepository interface {
 	CreateStaff(ctx context.Context, staff *models.Staff) error
 	GetStaffByEmail(ctx context.Context, workEmail string) (*models.Staff, error)

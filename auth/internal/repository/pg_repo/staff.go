@@ -3,9 +3,11 @@ package pgrepo
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
 	"go.uber.org/zap"
@@ -34,14 +36,14 @@ func (p *pgStaff) CreateStaff(ctx context.Context, staff *models.Staff) error {
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
 	return nil
@@ -58,12 +60,12 @@ func (p *pgStaff) GetStaffByEmail(ctx context.Context, workEmail string) (*model
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return nil, err
+		return nil, fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	row := p.db.DB.QueryRow(ctx, query, args...)
 
-	staff := models.Staff{}
+	staff := new(models.Staff)
 
 	err = row.Scan(
 		&staff.ID,
@@ -74,17 +76,16 @@ func (p *pgStaff) GetStaffByEmail(ctx context.Context, workEmail string) (*model
 		&staff.UpdatedAt,
 	)
 	if err != nil {
-
 		if errors.Is(err, pgx.ErrNoRows) {
 			p.log.Info(op+"staff not found", zap.String("work_email", workEmail))
 		}
 
 		p.log.Error(op+"failed to scan row", zap.Error(err))
 
-		return nil, err
+		return nil, fmt.Errorf("%w (%w)", domain.ErrScanRow, err)
 	}
 
-	return &staff, nil
+	return staff, nil
 }
 
 func (p *pgStaff) UpdateStaffPassword(ctx context.Context, workEmail string, newHash string) error {
@@ -98,14 +99,14 @@ func (p *pgStaff) UpdateStaffPassword(ctx context.Context, workEmail string, new
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}
 
 	return nil
@@ -122,14 +123,14 @@ func (p *pgStaff) DeactivateStaff(ctx context.Context, workEmail string) error {
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
 
-		return err
+		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}
 
 	p.log.Info(op+"staff deactivated", zap.String("work_email", workEmail))

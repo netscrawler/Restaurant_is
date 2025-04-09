@@ -3,9 +3,15 @@ package app
 import (
 	"context"
 
+	"github.com/netscrawler/Restaurant_is/auth/internal/adaptor/notify"
 	grpcapp "github.com/netscrawler/Restaurant_is/auth/internal/app/grpc"
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
+	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
+	inmemcache "github.com/netscrawler/Restaurant_is/auth/internal/repository/in_mem_cache"
+	pgrepo "github.com/netscrawler/Restaurant_is/auth/internal/repository/pg_repo"
+	"github.com/netscrawler/Restaurant_is/auth/internal/service"
 	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -20,7 +26,33 @@ func New(log *zap.Logger, cfg config.Config) *App {
 	const op = "app.New"
 
 	db := postgres.MustSetup(context.Background(), cfg.DB.GetURL(), log)
-	authService := // Initialize authService here
+	clientRepo := repository.NewClient(pgrepo.NewPgClient(db, log))
+	// auditRepo := repository.NewAudit(pgrepo.NewPgAudit(db, log))
+	oauthRepo := repository.NewOAuth(pgrepo.NewPgOauth(db, log))
+	stafRepo := repository.NewStaff(pgrepo.NewPgStaff(db, log))
+	tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
+
+	notifySender := notify.Notify{}
+	jwt, _ := utils.NewJWTManager(
+		cfg.JWT.Secret,
+		cfg.JWT.AccessDuration,
+		"sdgsdgsdfds",
+		cfg.JWT.RefreshDuration,
+		"me",
+	)
+
+	codeProvider := inmemcache.New()
+
+	authService := service.NewAuthService(
+		log,
+		clientRepo,
+		stafRepo,
+		tokenRepo,
+		oauthRepo,
+		&notifySender,
+		codeProvider,
+		jwt,
+	)
 	gRPCServ := grpcapp.New(log, authService, cfg.GRPCServer.Port)
 
 	return &App{

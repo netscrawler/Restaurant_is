@@ -7,12 +7,15 @@ var (
 	ErrNotFound   = errors.New("ErrNotFound")
 	ErrBuildQuery = errors.New("ErrBuildQuery")
 	ErrExecQuery  = errors.New("ErrExecQuery")
+	ErrScanRow    = errors.New("ErrScanRow")
 )
 
 // Service errors.
 var (
 	ErrInternal         = errors.New("InternalError")
 	ErrFailedCreateCode = errors.New("ErrGenerateCode")
+	ErrGenerateToken    = errors.New("ErrGenerateToken")
+	ErrUnknownUserType  = errors.New("ErrUnknownUserType")
 )
 
 // Token errors.
@@ -20,6 +23,8 @@ var (
 	ErrUnexpectedSignMethod = errors.New("ErrUnexpectedSignMethod")
 	ErrInternalCodeGen      = errors.New("ErrInternalCodeGen")
 	ErrInternalCodeParse    = errors.New("ErrInternalCodeParse")
+	ErrSecret               = errors.New("ErrSecret")
+	ErrEmptySecret          = errors.New("ErrEmptySecret")
 )
 
 var ErrCodeConfirmGen = errors.New("ErrCodeConfirmGen")
@@ -40,4 +45,6 @@ var (
 	ErrPasswordLowerCase = errors.New("password must contain at least one lowercase letter")
 
 	ErrNilRequest = errors.New("request cannot be nil")
+
+	ErrInvalidUserUUID = errors.New("ErrInvalidUserUUID")
 )

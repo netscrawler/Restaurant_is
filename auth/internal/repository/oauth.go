@@ -6,7 +6,6 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 )
 
-// OAuthRepository - работа с OAuth-привязками
 type OAuthRepository interface {
 	LinkAccount(ctx context.Context, clientID string, provider *models.OAuthProvider) error
 	GetByProvider(ctx context.Context, provider, providerID string) (*models.OAuthProvider, error)

@@ -7,6 +7,7 @@ linters:
     - depguard
     - tagalign
     - godox
+    - varnamelen
   settings:
     revive:
       severity: warning

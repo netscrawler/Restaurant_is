@@ -25,7 +25,7 @@ func NewJWTManager(
 ) (*JWTManager, error) {
 	// Проверка на пустые ключи
 	if secret == "" || refreshSecret == "" {
-		return nil, fmt.Errorf("secret keys cannot be empty")
+		return nil, fmt.Errorf("%w (%w)", domain.ErrSecret, domain.ErrEmptySecret)
 	}
 
 	return &JWTManager{
@@ -37,7 +37,7 @@ func NewJWTManager(
 	}, nil
 }
 
-// Claims структура расширена для соответствия proto-определению User
+// Claims структура расширена для соответствия proto-определению User.
 type Claims struct {
 	UserID   string   `json:"userId"`
 	UserType string   `json:"userType"` // "client" или "staff"
@@ -45,16 +45,16 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// RefreshClaims содержит минимальную информацию для refresh токена
+// RefreshClaims содержит минимальную информацию для refresh токена.
 type RefreshClaims struct {
 	UserID string `json:"userId"`
 	jwt.RegisteredClaims
 }
 
-// Generate создает access token с полными данными пользователя
+// Generate создает access token с полными данными пользователя.
 func (m *JWTManager) Generate(userID string, userType string, roles []string) (string, error) {
 	if userID == "" {
-		return "", fmt.Errorf("userID cannot be empty")
+		return "", domain.ErrInvalidUserUUID
 	}
 
 	now := time.Now()
@@ -77,18 +77,19 @@ func (m *JWTManager) Generate(userID string, userType string, roles []string) (s
 	if err != nil {
 		return "", fmt.Errorf("%w %w", domain.ErrInternalCodeGen, err)
 	}
+
 	return signedToken, nil
 }
 
-// GetRefreshTokenDuration возвращает настроенную длительность refresh токена
+// GetRefreshTokenDuration возвращает настроенную длительность refresh токена.
 func (m *JWTManager) GetRefreshTokenDuration() time.Duration {
 	return m.refreshTokenDuration
 }
 
-// GenerateRefreshToken создает refresh токен с увеличенным сроком действия
+// GenerateRefreshToken создает refresh токен с увеличенным сроком действия.
 func (m *JWTManager) GenerateRefreshToken(userID string) (string, error) {
 	if userID == "" {
-		return "", fmt.Errorf("userID cannot be empty")
+		return "", domain.ErrInvalidUserUUID
 	}
 
 	now := time.Now()
@@ -109,21 +110,22 @@ func (m *JWTManager) GenerateRefreshToken(userID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%w %w", domain.ErrInternalCodeGen, err)
 	}
+
 	return signedRefreshToken, nil
 }
 
-// GenerateTokenPair создает пару токенов (access + refresh) за один вызов
+// GenerateTokenPair создает пару токенов (access + refresh) за один вызов.
 func (m *JWTManager) GenerateTokenPair(
 	userID string,
 	userType string,
 	roles []string,
-) (accessToken string, refreshToken string, err error) {
-	accessToken, err = m.Generate(userID, userType, roles)
+) (string, string, error) {
+	accessToken, err := m.Generate(userID, userType, roles)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err = m.GenerateRefreshToken(userID)
+	refreshToken, err := m.GenerateRefreshToken(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -131,26 +133,22 @@ func (m *JWTManager) GenerateTokenPair(
 	return accessToken, refreshToken, nil
 }
 
-// Verify проверяет access token и возвращает claims
+// Verify проверяет access token и возвращает claims.
 func (m *JWTManager) Verify(tokenStr string) (*Claims, error) {
 	if tokenStr == "" {
 		return nil, domain.ErrInvalidToken
 	}
 
-	token, err := jwt.ParseWithClaims(
-		tokenStr,
-		&Claims{},
-		func(token *jwt.Token) (any, error) {
-			// Проверка метода подписи
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, domain.ErrUnexpectedSignMethod
-			}
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
+		// Проверка метода подписи
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, domain.ErrUnexpectedSignMethod
+		}
 
-			return []byte(m.secretKey), nil
-		},
-	)
+		return []byte(m.secretKey), nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("%w %w", domain.ErrInternalCodeParse, err)
+		return nil, fmt.Errorf("%w (%w)", domain.ErrInternalCodeParse, err)
 	}
 
 	claims, ok := token.Claims.(*Claims)
@@ -166,15 +164,14 @@ func (m *JWTManager) Verify(tokenStr string) (*Claims, error) {
 	return claims, nil
 }
 
-// VerifyRefreshToken проверяет refresh токен
+// VerifyRefreshToken проверяет refresh токен.
 func (m *JWTManager) VerifyRefreshToken(refreshTokenStr string) (*RefreshClaims, error) {
 	if refreshTokenStr == "" {
 		return nil, domain.ErrInvalidToken
 	}
 
-	refreshToken, err := jwt.ParseWithClaims(
+	refreshToken, err := jwt.Parse(
 		refreshTokenStr,
-		&RefreshClaims{},
 		func(token *jwt.Token) (any, error) {
 			// Проверка метода подписи
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -185,7 +182,7 @@ func (m *JWTManager) VerifyRefreshToken(refreshTokenStr string) (*RefreshClaims,
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w %w", domain.ErrInternalCodeParse, err)
+		return nil, fmt.Errorf("%w (%w)", domain.ErrInternalCodeParse, err)
 	}
 
 	refreshClaims, ok := refreshToken.Claims.(*RefreshClaims)
@@ -201,7 +198,7 @@ func (m *JWTManager) VerifyRefreshToken(refreshTokenStr string) (*RefreshClaims,
 	return refreshClaims, nil
 }
 
-// RefreshAccessToken создает новый access token на основе действительного refresh токена
+// RefreshAccessToken создает новый access token на основе действительного refresh токена.
 func (m *JWTManager) RefreshAccessToken(
 	refreshTokenStr string,
 	userType string,

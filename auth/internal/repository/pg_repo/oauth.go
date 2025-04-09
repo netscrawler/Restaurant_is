@@ -3,6 +3,7 @@ package pgrepo
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
@@ -38,13 +39,15 @@ func (p *pgOauth) LinkAccount(
 		ToSql()
 	if err != nil {
 		p.log.Error(op+" failed to build SQL query", zap.Error(err))
-		return err
+
+		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+" failed to execute SQL query", zap.Error(err))
-		return err
+
+		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
 	return nil
@@ -64,12 +67,14 @@ func (p *pgOauth) GetByProvider(
 		ToSql()
 	if err != nil {
 		p.log.Error(op+" failed to build SQL query", zap.Error(err))
-		return nil, err
+
+		return nil, fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	row := p.db.DB.QueryRow(ctx, query, args...)
 
 	var oauthProvider models.OAuthProvider
+
 	err = row.Scan(
 		&oauthProvider.ClientID,
 		&oauthProvider.Provider,
@@ -79,11 +84,18 @@ func (p *pgOauth) GetByProvider(
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			p.log.Info(op+" OAuth provider not found", zap.String("provider", provider), zap.String("providerID", providerID))
+			p.log.Info(
+				op+" OAuth provider not found",
+				zap.String("provider", provider),
+				zap.String("providerID", providerID),
+			)
+
 			return nil, domain.ErrNotFound
 		}
+
 		p.log.Error(op+" failed to scan row", zap.Error(err))
-		return nil, err
+
+		return nil, fmt.Errorf("%w %w", domain.ErrScanRow, err)
 	}
 
 	return &oauthProvider, nil
@@ -98,13 +110,15 @@ func (p *pgOauth) UnlinkAccount(ctx context.Context, clientID string, provider s
 		ToSql()
 	if err != nil {
 		p.log.Error(op+" failed to build SQL query", zap.Error(err))
-		return err
+
+		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
 		p.log.Error(op+" failed to execute SQL query", zap.Error(err))
-		return err
+
+		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
 	return nil

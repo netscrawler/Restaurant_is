@@ -27,3 +27,21 @@ type AuthEvent struct {
 	UserAgent string          `json:"userAgent"`
 	CreatedAt time.Time       `json:"createdAt"`
 }
+
+func NewAuthEvent(
+	userID uuid.UUID,
+	userType UserType,
+	eventAction AuthEventAction,
+	ipAddress string,
+	userAgent string,
+) *AuthEvent {
+	return &AuthEvent{
+		ID:        uuid.New(),
+		UserID:    userID,
+		UserType:  userType,
+		Action:    eventAction,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+		CreatedAt: time.Now(),
+	}
+}

@@ -6,7 +6,6 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 )
 
-// ClientRepository - работа с клиентами
 type ClientRepository interface {
 	CreateClient(ctx context.Context, client *models.Client) error
 	GetClientByPhone(ctx context.Context, phone string) (*models.Client, error)

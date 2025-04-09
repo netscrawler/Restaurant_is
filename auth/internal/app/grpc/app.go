@@ -7,6 +7,7 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	authgrpc "github.com/netscrawler/Restaurant_is/auth/internal/grpc/auth"
+	"github.com/netscrawler/Restaurant_is/auth/internal/service"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -20,7 +21,7 @@ type App struct {
 	port       int
 }
 
-func New(log *zap.Logger, authService authgrpc.Auth, port int) *App {
+func New(log *zap.Logger, authService *service.AuthService, port int) *App {
 	grpc_zap.ReplaceGrpcLoggerV2(log)
 
 	//nolint:exhaustive

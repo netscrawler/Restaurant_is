@@ -20,7 +20,7 @@ func NewPgToken(db *postgres.Storage, log *zap.Logger) *pgToken {
 	}
 }
 
-func (p *pgToken) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) error {
+func (p *pgToken) StoreRefreshToken(ctx context.Context, token *models.RefreshToken) error {
 	panic("not implemented") // TODO: Implement
 }
 

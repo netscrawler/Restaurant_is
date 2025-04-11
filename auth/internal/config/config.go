@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/rsa"
 	"flag"
 	"fmt"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/netscrawler/Restaurant_is/auth/internal/pkg"
 )
 
 type Config struct {
@@ -15,7 +17,9 @@ type Config struct {
 	DB          DatabaseConfig `yaml:"db"          env:"DATABASE_CONFIG"`
 	GRPCServer  gRPC           `yaml:"grpcServer"  env:"GRPC_SERVER_CONFIG"`
 	YandexOAuth YandexOAuth    `yaml:"yandexOAuth" env:"YANDEX_O_AUTH"`
-	JWT         JWT            `yaml:"jwt"         env:"JWT"`
+	JWT         JWTConfig      `yaml:"jwt"`
+	JWTRaw      JWTConfigRaw   `yaml:"jwtRAW"`
+	CodeLife    time.Duration  `yaml:"codeLife"                             env-default:"5m"`
 }
 
 type DatabaseConfig struct {
@@ -31,18 +35,31 @@ type DatabaseConfig struct {
 }
 type gRPC struct {
 	Address string `yaml:"address" env:"address" env-default:"address"`
-	Port    int    `yaml:"port" env:"port"`
+	Port    int    `yaml:"port"    env:"port"`
 }
 type YandexOAuth struct {
 	ClientID     string `yaml:"yandexClientId"     env:"YANDEX_CLIENT_ID"`
 	ClientSecret string `yaml:"yandexClientSecret" env:"YANDEX_CLIENT_SECRET"`
 	RedirectURL  string `yaml:"yandexRedirectUrl"  env:"YANDEX_REDIRECT_URL"`
 }
+type JWTConfig struct {
+	PrivateKey        *rsa.PrivateKey
+	PublicKey         *rsa.PublicKey
+	RefreshPrivateKey *rsa.PrivateKey
+	RefreshPublicKey  *rsa.PublicKey
+	AccessTTL         time.Duration
+	RefreshTTL        time.Duration
+	Issuer            string
+}
 
-type JWT struct {
-	Secret          string        `yaml:"jwtSecret"       env:"JWT_SECRET"`
-	AccessDuration  time.Duration `yaml:"accessDuration"  env:"JWT_ACCESS_DURATION"  env-default:"15m"`
-	RefreshDuration time.Duration `yaml:"refreshDuration" env:"JWT_REFRESH_DURATION" env-default:"720h"` // 30 days
+type JWTConfigRaw struct {
+	PrivateKey        string        `yaml:"privateKey"`
+	PublicKey         string        `yaml:"publicKey"`
+	RefreshPrivateKey string        `yaml:"refreshPrivateKey"`
+	RefreshPublicKey  string        `yaml:"refreshPublicKey"`
+	AccessTTL         time.Duration `yaml:"accessTtl"`
+	RefreshTTL        time.Duration `yaml:"refreshTtl"`
+	Issuer            string        `yaml:"issuer"`
 }
 
 func MustLoad() *Config {
@@ -59,6 +76,11 @@ func MustLoad() *Config {
 
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("config path is empty: " + err.Error())
+	}
+
+	err := NewJWTConfig(cfg.JWTRaw, &cfg.JWT)
+	if err != nil {
+		panic(err.Error())
 	}
 
 	return &cfg
@@ -95,4 +117,59 @@ func (db *DatabaseConfig) GetURL() string {
 		db.PoolMaxConn,
 		db.PoolMaxConnLifetime.String(),
 	)
+}
+
+func NewJWTConfig(raw JWTConfigRaw, out *JWTConfig) error {
+	// Чтение приватного ключа из файла
+	privData, err := os.ReadFile(raw.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("ошибка чтения файла с PrivateKey: %w", err)
+	}
+	priv, err := pkg.ParseRSAPrivateKey(privData)
+	if err != nil {
+		return fmt.Errorf("ошибка парсинга PrivateKey: %w", err)
+	}
+
+	// Чтение публичного ключа из файла
+	pubData, err := os.ReadFile(raw.PublicKey)
+	if err != nil {
+		return fmt.Errorf("ошибка чтения файла с PublicKey: %w", err)
+	}
+	pub, err := pkg.ParseRSAPublicKey(pubData)
+	if err != nil {
+		return fmt.Errorf("ошибка парсинга PublicKey: %w", err)
+	}
+
+	// Чтение приватного ключа для Refresh токенов
+	refreshPrivData, err := os.ReadFile(raw.RefreshPrivateKey)
+	if err != nil {
+		return fmt.Errorf("ошибка чтения файла с RefreshPrivateKey: %w", err)
+	}
+	refreshPriv, err := pkg.ParseRSAPrivateKey(refreshPrivData)
+	if err != nil {
+		return fmt.Errorf("ошибка парсинга RefreshPrivateKey: %w", err)
+	}
+
+	// Чтение публичного ключа для Refresh токенов
+	refreshPubData, err := os.ReadFile(raw.RefreshPublicKey)
+	if err != nil {
+		return fmt.Errorf("ошибка чтения файла с RefreshPublicKey: %w", err)
+	}
+	refreshPub, err := pkg.ParseRSAPublicKey(refreshPubData)
+	if err != nil {
+		return fmt.Errorf("ошибка парсинга RefreshPublicKey: %w", err)
+	}
+
+	// Присваиваем все значения в структуру JWTConfig
+	*out = JWTConfig{
+		PrivateKey:        priv,
+		PublicKey:         pub,
+		RefreshPrivateKey: refreshPriv,
+		RefreshPublicKey:  refreshPub,
+		AccessTTL:         raw.AccessTTL,
+		RefreshTTL:        raw.RefreshTTL,
+		Issuer:            raw.Issuer,
+	}
+
+	return nil
 }

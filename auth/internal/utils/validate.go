@@ -34,7 +34,7 @@ func NewRequestValidator() *RequestValidator {
 // ValidateRequest валидирует любой запрос из proto-сервиса
 func (v *RequestValidator) ValidateRequest(ctx context.Context, req interface{}) error {
 	switch r := req.(type) {
-	case *authv1.LoginClientRequest:
+	case *authv1.LoginClientInitRequest:
 		return ValidateLoginClientRequest(r)
 	case *authv1.LoginClientConfirmRequest:
 		return ValidateLoginClientConfirmRequest(r)
@@ -52,7 +52,7 @@ func (v *RequestValidator) ValidateRequest(ctx context.Context, req interface{})
 }
 
 // ValidateLoginClientRequest валидирует запрос на логин клиента
-func ValidateLoginClientRequest(req *authv1.LoginClientRequest) error {
+func ValidateLoginClientRequest(req *authv1.LoginClientInitRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
 	}

@@ -7,7 +7,6 @@ import (
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	authgrpc "github.com/netscrawler/Restaurant_is/auth/internal/grpc/auth"
-	"github.com/netscrawler/Restaurant_is/auth/internal/service"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -21,7 +20,7 @@ type App struct {
 	port       int
 }
 
-func New(log *zap.Logger, authService *service.AuthService, port int) *App {
+func New(log *zap.Logger, authService authgrpc.Auth, audit authgrpc.Audit, port int) *App {
 	grpc_zap.ReplaceGrpcLoggerV2(log)
 
 	//nolint:exhaustive
@@ -56,7 +55,7 @@ func New(log *zap.Logger, authService *service.AuthService, port int) *App {
 			recovery.StreamServerInterceptor(recoveryOpts...),
 		),
 	)
-	authgrpc.Register(gRPCServer, authService)
+	authgrpc.Register(gRPCServer, authService, audit)
 
 	return &App{
 		log:        log,

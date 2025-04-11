@@ -8,6 +8,7 @@ linters:
     - tagalign
     - godox
     - varnamelen
+    - wrapcheck
   settings:
     revive:
       severity: warning

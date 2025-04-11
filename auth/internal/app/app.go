@@ -27,33 +27,28 @@ func New(log *zap.Logger, cfg config.Config) *App {
 
 	db := postgres.MustSetup(context.Background(), cfg.DB.GetURL(), log)
 	clientRepo := repository.NewClient(pgrepo.NewPgClient(db, log))
-	// auditRepo := repository.NewAudit(pgrepo.NewPgAudit(db, log))
-	oauthRepo := repository.NewOAuth(pgrepo.NewPgOauth(db, log))
+	auditRepo := repository.NewAudit(pgrepo.NewPgAudit(db, log))
+	// oauthRepo := repository.NewOAuth(pgrepo.NewPgOauth(db, log))
 	stafRepo := repository.NewStaff(pgrepo.NewPgStaff(db, log))
-	tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
+	// tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
 
-	notifySender := notify.Notify{}
-	jwt, _ := utils.NewJWTManager(
-		cfg.JWT.Secret,
-		cfg.JWT.AccessDuration,
-		"sdgsdgsdfds",
-		cfg.JWT.RefreshDuration,
-		"me",
-	)
+	notifySender := notify.New(log)
+	jwt, _ := utils.NewJWTManager(cfg.JWT)
 
-	codeProvider := inmemcache.New()
+	codeProvider := inmemcache.New(cfg.CodeLife)
 
 	authService := service.NewAuthService(
 		log,
 		clientRepo,
 		stafRepo,
-		tokenRepo,
-		oauthRepo,
-		&notifySender,
+		// tokenRepo,
+		// oauthRepo,
+		notifySender,
 		codeProvider,
 		jwt,
 	)
-	gRPCServ := grpcapp.New(log, authService, cfg.GRPCServer.Port)
+	audit := service.NewAuditService(auditRepo, log)
+	gRPCServ := grpcapp.New(log, authService, audit, cfg.GRPCServer.Port)
 
 	return &App{
 		log:      log,

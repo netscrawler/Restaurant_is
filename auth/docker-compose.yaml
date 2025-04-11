@@ -3,9 +3,9 @@ services:
     build: .
     container_name: auth_service
     ports:
-      - "54821:8080"
+      - "54821:54821"
     environment:
-      - CONFIG_PATH=config/local.yaml
+      - CONFIG_PATH=config/config.local.yaml
     depends_on:
       db:
         condition: service_healthy
@@ -17,12 +17,12 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: bottst
+      POSTGRES_DB: auth
     ports:
       - "5432:5432"
     command: postgres
     volumes:
-      - ./internal/database/migrations/init.sql/:/docker-entrypoint-initdb.d
+      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

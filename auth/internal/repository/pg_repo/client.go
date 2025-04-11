@@ -28,8 +28,8 @@ func NewPgClient(db *postgres.Storage, log *zap.Logger) *pgClient {
 func (p *pgClient) CreateClient(ctx context.Context, client *models.Client) error {
 	const op = "repository.pg.Client.Create"
 
-	query, args, err := p.db.Builder.Insert("clients").Columns("phone").
-		Values(client.Phone).ToSql()
+	query, args, err := p.db.Builder.Insert("clients").Columns("id", "phone").
+		Values(client.ID, client.Phone).ToSql()
 	if err != nil {
 		p.log.Error(op+"failed to build SQL query", zap.Error(err))
 
@@ -51,11 +51,9 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 
 	query, args, err := p.db.Builder.Select(
 		"id",
-		"email",
-		"password_hash",
+		"phone",
 		"is_active",
 		"created_at",
-		"updated_at",
 	).
 		From("clients").
 		Where(squirrel.Eq{"phone": phone}).

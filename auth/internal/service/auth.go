@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
@@ -25,8 +26,6 @@ type AuthService struct {
 	log          *zap.Logger
 	clientRepo   repository.ClientRepository
 	staffRepo    repository.StaffRepository
-	tokenRepo    repository.TokenRepository
-	oauthRepo    repository.OAuthRepository
 	notify       NotifySender
 	codeProvider CodeProvider
 	jwtManager   *utils.JWTManager
@@ -36,8 +35,6 @@ func NewAuthService(
 	log *zap.Logger,
 	clientRepo repository.ClientRepository,
 	staffRepo repository.StaffRepository,
-	tokenRepo repository.TokenRepository,
-	oauthRepo repository.OAuthRepository,
 	notifySender NotifySender,
 	codeProvider CodeProvider,
 	jwtManager *utils.JWTManager,
@@ -45,8 +42,6 @@ func NewAuthService(
 	return &AuthService{
 		clientRepo:   clientRepo,
 		staffRepo:    staffRepo,
-		tokenRepo:    tokenRepo,
-		oauthRepo:    oauthRepo,
 		jwtManager:   jwtManager,
 		notify:       notifySender,
 		log:          log,
@@ -65,7 +60,7 @@ func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 		user = models.NewClient(phone)
 
 		err = a.clientRepo.CreateClient(ctx, user)
-		if (err != nil) {
+		if err != nil {
 			return domain.ErrInternal
 		}
 	case err != nil:
@@ -73,37 +68,70 @@ func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 	default:
 	}
 
-	code, err := utils.GenerateSecureCode()
-	if err != nil {
-		return domain.ErrFailedCreateCode
-	}
-
-	a.codeProvider.Set(user.ID, code)
-	// Todo: add token cache.
-	go a.notify.Send(ctx, phone, models.NewCodeMsg(code).String())
+	a.genAndSend(ctx, user)
 
 	return nil
 }
 
-func (a *AuthService) LoginClientConfirm(ctx context.Context, phone string, code int) (string, string, error) {
+func (a *AuthService) genAndSend(ctx context.Context, u *models.Client) {
+	go func(ctx context.Context, u *models.Client) {
+		code, err := utils.GenerateSecureCode()
+		if err != nil {
+			a.log.Error("error generate secure token", zap.Error(err))
+		}
+
+		a.codeProvider.Set(u.ID, code)
+		a.notify.Send(ctx, u.Phone, models.NewCodeMsg(code).String())
+	}(ctx, u)
+}
+
+func (a *AuthService) LoginClientConfirm(
+	ctx context.Context,
+	phone string,
+	code string,
+) (string, string, *models.Client, error) {
 	const op = "service.Auth.LoginClientConfirm"
 
-	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
+	codeInt, err := strconv.Atoi(code)
 	if err != nil {
-		return "", "", domain.ErrNotFound
+		return "", "", nil, domain.ErrInvalidCode
+	}
+
+	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
+
+	switch {
+	case errors.Is(err, domain.ErrNotFound):
+		return "", "", nil, domain.ErrNotFound
+	case err != nil:
+		return "", "", nil, domain.ErrNotFound
+	default:
 	}
 
 	storedCode, exists := a.codeProvider.Get(user.ID)
-	if !exists || storedCode != code {
-		return "", "", domain.ErrInvalidCode
+
+	if !exists || storedCode != codeInt {
+		a.log.Info(op+" Invalid code", zap.Any("user", user), zap.Int("code", codeInt))
+
+		return "", "", nil, domain.ErrInvalidCode
 	}
 
-	a.codeProvider.Delete(user.ID)
-
-	accessToken, refreshToken, err := a.jwtManager.GenerateTokenPair(user.ID.String(), "client", []string{"client"})
+	accessToken, refreshToken, err := a.jwtManager.GenerateTokenPair(
+		user.ID.String(),
+		string(models.UserTypeClient),
+		user.Phone,
+	)
 	if err != nil {
-		return "", "", domain.ErrInternal
+		return "", "", nil, domain.ErrInternal
 	}
 
-	return accessToken, refreshToken, nil
+	return accessToken, refreshToken, user, nil
+}
+
+func (a *AuthService) Verify(ctx context.Context, token string) (bool, string, string, error) {
+	cl, err := a.jwtManager.VerifyAccessToken(token)
+	if err != nil {
+		return false, "", "", err
+	}
+
+	return true, cl.UserID, cl.UserPhone, nil
 }

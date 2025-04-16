@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -89,21 +90,21 @@ func (a *AuthService) LoginClientConfirm(
 	ctx context.Context,
 	phone string,
 	code string,
-) (string, string, *models.Client, error) {
+) (string, int64, string, int64, *models.Client, error) {
 	const op = "service.Auth.LoginClientConfirm"
 
 	codeInt, err := strconv.Atoi(code)
 	if err != nil {
-		return "", "", nil, domain.ErrInvalidCode
+		return "", 0, "", 0, nil, domain.ErrInvalidCode
 	}
 
 	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
 
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
-		return "", "", nil, domain.ErrNotFound
+		return "", 0, "", 0, nil, domain.ErrNotFound
 	case err != nil:
-		return "", "", nil, domain.ErrNotFound
+		return "", 0, "", 0, nil, domain.ErrInternal
 	default:
 	}
 
@@ -112,25 +113,25 @@ func (a *AuthService) LoginClientConfirm(
 	if !exists || storedCode != codeInt {
 		a.log.Info(op+" Invalid code", zap.Any("user", user), zap.Int("code", codeInt))
 
-		return "", "", nil, domain.ErrInvalidCode
+		return "", 0, "", 0, nil, domain.ErrInvalidCode
 	}
 
-	accessToken, refreshToken, err := a.jwtManager.GenerateTokenPair(
+	accessToken, aTokenExpire, refreshToken, rTokenExpire, err := a.jwtManager.GenerateTokenPair(
 		user.ID.String(),
 		string(models.UserTypeClient),
 		user.Phone,
 	)
 	if err != nil {
-		return "", "", nil, domain.ErrInternal
+		return "", 0, "", 0, nil, domain.ErrInternal
 	}
 
-	return accessToken, refreshToken, user, nil
+	return accessToken, aTokenExpire, refreshToken, rTokenExpire, user, nil
 }
 
 func (a *AuthService) Verify(ctx context.Context, token string) (bool, string, string, error) {
 	cl, err := a.jwtManager.VerifyAccessToken(token)
 	if err != nil {
-		return false, "", "", err
+		return false, "", "", fmt.Errorf("%w (%w)", domain.ErrInvalidCode, err)
 	}
 
 	return true, cl.UserID, cl.UserPhone, nil

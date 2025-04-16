@@ -2,7 +2,9 @@ package authgrpc
 
 import (
 	"context"
+	"errors"
 
+	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	authv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
 	"google.golang.org/grpc"
@@ -31,7 +33,7 @@ type Auth interface {
 		ctx context.Context,
 		phone string,
 		code string,
-	) (accessToken string, refreshToken string, client *models.Client, err error)
+	) (accessToken string, aTokenExpire int64, refreshToken string, rTokenExpire int64, client *models.Client, err error)
 	Verify(ctx context.Context, token string) (bool, string, string, error)
 }
 
@@ -51,8 +53,15 @@ type serverAPI struct {
 	audit Audit
 }
 
-func Register(gRPCServer *grpc.Server, auth Auth, audit Audit) {
-	authv1.RegisterAuthServer(gRPCServer, &serverAPI{auth: auth, audit: audit})
+func Register(
+	gRPCServer *grpc.Server,
+	auth Auth,
+	audit Audit,
+) {
+	authv1.RegisterAuthServer(
+		gRPCServer,
+		&serverAPI{auth: auth, audit: audit},
+	)
 }
 
 func (s *serverAPI) LoginClientInit(
@@ -74,17 +83,29 @@ func (s *serverAPI) LoginClientConfirm(
 	ctx context.Context,
 	in *authv1.LoginClientConfirmRequest,
 ) (*authv1.LoginResponse, error) {
-	tkn, rtkn, user, err := s.auth.LoginClientConfirm(ctx, in.GetPhone(), in.GetCode())
-	if err != nil {
-		// TODO: Fix.
+	tkn, tknExp, rtkn, rtknExp, user, err := s.auth.LoginClientConfirm(
+		ctx,
+		in.GetPhone(),
+		in.GetCode(),
+	)
 
-		return nil, status.Errorf(codes.Internal, "%s", err.Error())
+	switch {
+	case errors.Is(err, domain.ErrInternal):
+		return nil, status.Error(codes.Internal, err.Error())
+	case errors.Is(err, domain.ErrInvalidCode):
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	case errors.Is(err, domain.ErrNotFound):
+		return nil, status.Error(codes.NotFound, err.Error())
+	case err != nil:
+		return nil, status.Error(codes.Internal, err.Error())
+	default:
 	}
 
 	return &authv1.LoginResponse{
-		AccessToken:  tkn,
-		ExpiresIn:    200000,
-		RefreshToken: rtkn,
+		AccessToken:      tkn,
+		ExpiresIn:        tknExp,
+		RefreshToken:     rtkn,
+		RefreshExpiresIn: rtknExp,
 		User: &authv1.User{
 			Id: user.ID.String(),
 			UserType: &authv1.User_Client{
@@ -146,12 +167,6 @@ func (s *serverAPI) Validate(
 // 	return s.auth.LoginYandex(ctx, in)
 // }
 //
-// func (s *serverAPI) Validate(
-// 	ctx context.Context,
-// 	in *authv1.ValidateRequest,
-// ) (*authv1.ValidateResponse, error) {
-// 	return s.auth.Validate(ctx, in)
-// }
 //
 // func (s *serverAPI) Refresh(
 // 	ctx context.Context,

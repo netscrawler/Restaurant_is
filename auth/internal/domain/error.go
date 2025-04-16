@@ -27,7 +27,10 @@ var (
 	ErrEmptySecret          = errors.New("ErrEmptySecret")
 )
 
-var ErrCodeConfirmGen = errors.New("ErrCodeConfirmGen")
+var (
+	ErrCodeConfirmGen = errors.New("ErrCodeConfirmGen")
+	ErrMissingKeys    = errors.New("ErrMissingRSAKeys")
+)
 
 // Ошибки валидации.
 var (

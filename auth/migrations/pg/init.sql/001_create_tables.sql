@@ -7,7 +7,6 @@ CREATE TABLE clients (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
---TODO: Добавить номер телефона в таблицы
 ---------------------------
 -- 2. Таблица сотрудников (ресторан)
 ---------------------------

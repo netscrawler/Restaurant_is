@@ -5,6 +5,7 @@ import (
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/adaptor/notify"
 	grpcapp "github.com/netscrawler/Restaurant_is/auth/internal/app/grpc"
+	notifyclient "github.com/netscrawler/Restaurant_is/auth/internal/app/notifyclient"
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	inmemcache "github.com/netscrawler/Restaurant_is/auth/internal/repository/in_mem_cache"
@@ -16,10 +17,11 @@ import (
 )
 
 type App struct {
-	log      *zap.Logger
-	gRPCServ *grpcapp.App
-	db       *postgres.Storage
-	cfg      *config.Config
+	log          *zap.Logger
+	gRPCServ     *grpcapp.App
+	db           *postgres.Storage
+	notyfyclient *notifyclient.Client
+	cfg          *config.Config
 }
 
 func New(log *zap.Logger, cfg config.Config) *App {
@@ -32,7 +34,11 @@ func New(log *zap.Logger, cfg config.Config) *App {
 	stafRepo := repository.NewStaff(pgrepo.NewPgStaff(db, log))
 	// tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
 
-	notifySender := notify.New(log)
+	notifyClient, err := notifyclient.New(context.Background(), cfg.NotifyClient)
+	if err != nil {
+		panic(err)
+	}
+	notifySender := notify.New(log, notifyClient)
 	jwt, _ := utils.NewJWTManager(cfg.JWT)
 
 	codeProvider := inmemcache.New(cfg.CodeLife)
@@ -51,10 +57,11 @@ func New(log *zap.Logger, cfg config.Config) *App {
 	gRPCServ := grpcapp.New(log, authService, audit, cfg.GRPCServer.Port)
 
 	return &App{
-		log:      log,
-		gRPCServ: gRPCServ,
-		db:       db,
-		cfg:      &cfg,
+		log:          log,
+		gRPCServ:     gRPCServ,
+		db:           db,
+		cfg:          &cfg,
+		notyfyclient: notifyClient,
 	}
 }
 

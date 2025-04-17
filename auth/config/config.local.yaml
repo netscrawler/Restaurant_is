@@ -1,5 +1,6 @@
 env: "local"
 codeLife: "10m"
+notifyClient: "notify:54822"
 
 db:
   type: "postgres"

@@ -1,0 +1,100 @@
+version: "3"
+
+tasks:
+  default:
+    desc: "Список доступных задач"
+    cmds:
+      - task --list
+
+  up:
+    desc: "Запуск всех сервисов"
+    cmds:
+      - task: up-auth
+      - task: up-notify
+      # Добавь остальные сервисы по аналогии
+      # - task: up-gate
+      # - task: up-customer
+      # - task: up-order
+      # - task: up-payment
+
+  down:
+    desc: "Остановка всех сервисов"
+    cmds:
+      - task: down-auth
+      - task: down-notify
+      - task: down-gate
+      - task: down-customer
+      - task: down-order
+      - task: down-payment
+
+  up-auth:
+    desc: "Запуск auth"
+    dir: ./auth
+    cmds:
+      - docker-compose up -d --build
+
+  down-auth:
+    desc: "Остановка auth"
+    dir: ./auth
+    cmds:
+      - docker-compose down
+
+  up-notify:
+    desc: "Запуск notify"
+    dir: ./notify
+    cmds:
+      - docker-compose up -d --build
+
+  down-notify:
+    desc: "Остановка notify"
+    dir: ./notify
+    cmds:
+      - docker-compose down
+
+  up-gate:
+    desc: "Запуск gate"
+    dir: ./gate
+    cmds:
+      - docker-compose up -d || echo "нет docker-compose.yaml в gate"
+
+  down-gate:
+    desc: "Остановка gate"
+    dir: ./gate
+    cmds:
+      - docker-compose down || echo "нет docker-compose.yaml в gate"
+
+  up-customer:
+    desc: "Запуск customer_service"
+    dir: ./customer_service
+    cmds:
+      - docker-compose up -d || echo "нет docker-compose.yaml в customer_service"
+
+  down-customer:
+    desc: "Остановка customer_service"
+    dir: ./customer_service
+    cmds:
+      - docker-compose down || echo "нет docker-compose.yaml в customer_service"
+
+  up-order:
+    desc: "Запуск order_service"
+    dir: ./order_service
+    cmds:
+      - docker-compose up -d || echo "нет docker-compose.yaml в order_service"
+
+  down-order:
+    desc: "Остановка order_service"
+    dir: ./order_service
+    cmds:
+      - docker-compose down || echo "нет docker-compose.yaml в order_service"
+
+  up-payment:
+    desc: "Запуск payment_service"
+    dir: ./payment_service
+    cmds:
+      - docker-compose up -d || echo "нет docker-compose.yaml в payment_service"
+
+  down-payment:
+    desc: "Остановка payment_service"
+    dir: ./payment_service
+    cmds:
+      - docker-compose down || echo "нет docker-compose.yaml в payment_service"

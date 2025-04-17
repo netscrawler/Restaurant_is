@@ -13,13 +13,14 @@ import (
 )
 
 type Config struct {
-	Env         string         `yaml:"env"         env:"ENV"                env-default:"local"`
-	DB          DatabaseConfig `yaml:"db"          env:"DATABASE_CONFIG"`
-	GRPCServer  gRPC           `yaml:"grpcServer"  env:"GRPC_SERVER_CONFIG"`
-	YandexOAuth YandexOAuth    `yaml:"yandexOAuth" env:"YANDEX_O_AUTH"`
-	JWT         JWTConfig      `yaml:"jwt"`
-	JWTRaw      JWTConfigRaw   `yaml:"jwtRAW"`
-	CodeLife    time.Duration  `yaml:"codeLife"                             env-default:"5m"`
+	Env          string         `yaml:"env"          env:"ENV"                env-default:"local"`
+	DB           DatabaseConfig `yaml:"db"           env:"DATABASE_CONFIG"`
+	GRPCServer   gRPC           `yaml:"grpcServer"   env:"GRPC_SERVER_CONFIG"`
+	YandexOAuth  YandexOAuth    `yaml:"yandexOAuth"  env:"YANDEX_O_AUTH"`
+	JWT          JWTConfig      `yaml:"jwt"`
+	JWTRaw       JWTConfigRaw   `yaml:"jwtRAW"`
+	CodeLife     time.Duration  `yaml:"codeLife"                              env-default:"5m"`
+	NotifyClient string         `yaml:"notifyClient"`
 }
 
 type DatabaseConfig struct {

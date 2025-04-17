@@ -10,7 +10,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - internal
+      - default
   db:
     image: postgres:latest
     container_name: db
@@ -29,8 +29,8 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - internal
+      - default
 
 networks:
-  internal:
-    name: auth_service
+  default:
+    name: risp

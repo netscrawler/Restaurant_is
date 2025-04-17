@@ -15,12 +15,9 @@ type StubSender struct {
 }
 
 func (s *StubSender) Send(ctx context.Context, recipient string, message string) error {
-	s.log = s.log.With(
+	s.log.Info("Start sending Notify",
 		zap.String("recipient", recipient),
-		zap.String("message", message),
-	)
-
-	s.log.Info("Start sending Notify")
+		zap.String("message", message))
 
 	_, err := s.bot.Send(&telebot.Chat{ID: s.stubRecipient}, formatMessage(recipient, message))
 	if err != nil {

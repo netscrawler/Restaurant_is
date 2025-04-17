@@ -1,0 +1,14 @@
+services:
+  bottst:
+    build: .
+    container_name: notify
+    ports:
+      - "54821:54821"
+    environment:
+      # енвы подключения к БД
+      - CONFIG_PATH=config/config.local.docker.yaml
+    networks:
+      - internal
+networks:
+  internal:
+    name: notify

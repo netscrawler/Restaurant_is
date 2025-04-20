@@ -11,6 +11,7 @@ type StaffRepository interface {
 	GetStaffByEmail(ctx context.Context, workEmail string) (*models.Staff, error)
 	UpdateStaffPassword(ctx context.Context, workEmail, newHash string) error
 	DeactivateStaff(ctx context.Context, workEmail string) error
+	UpdateStaff(ctx context.Context, staff *models.Staff) error
 }
 
 type Staff struct {

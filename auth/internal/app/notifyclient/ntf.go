@@ -2,8 +2,8 @@ package notifyclient
 
 import (
 	"context"
-	"time"
 
+	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	notify "github.com/netscrawler/RispProtos/proto/gen/go/v1/notify"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -15,20 +15,18 @@ type Client struct {
 	Conn   *grpc.ClientConn
 }
 
-func New(ctx context.Context, address string) (*Client, error) {
-	conn, err := grpc.DialContext(
-		ctx,
-		address,
+func New(ctx context.Context, cfg config.NotifyClient) (*Client, error) {
+	conn, err := grpc.NewClient(
+		cfg.Address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithConnectParams(grpc.ConnectParams{
 			Backoff: backoff.Config{
-				BaseDelay:  1 * time.Second,
-				Multiplier: 1.5,
-				MaxDelay:   5 * time.Second,
+				BaseDelay:  cfg.BaseDelay,
+				Multiplier: cfg.Multiplier,
+				MaxDelay:   cfg.MaxDelay,
 			},
-			MinConnectTimeout: 5 * time.Second,
+			MinConnectTimeout: cfg.MinConnectTimeout,
 		}),
-		grpc.WithBlock(), // блокирует до соединения
 	)
 	if err != nil {
 		return nil, err

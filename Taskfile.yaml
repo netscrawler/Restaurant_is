@@ -9,8 +9,9 @@ tasks:
   up:
     desc: "Запуск всех сервисов"
     cmds:
-      - task: up-auth
+      - task: up-network
       - task: up-notify
+      - task: up-auth
       # Добавь остальные сервисы по аналогии
       # - task: up-gate
       # - task: up-customer
@@ -20,6 +21,7 @@ tasks:
   down:
     desc: "Остановка всех сервисов"
     cmds:
+      - task: down-network
       - task: down-auth
       - task: down-notify
       - task: down-gate
@@ -36,6 +38,18 @@ tasks:
   down-auth:
     desc: "Остановка auth"
     dir: ./auth
+    cmds:
+      - docker-compose down
+
+  up-network:
+    desc: "Создание сети"
+    dir: ./deploy
+    cmds:
+      - docker-compose up -d
+
+  down-network:
+    desc: "Остановка сети"
+    dir: ./deploy
     cmds:
       - docker-compose down
 

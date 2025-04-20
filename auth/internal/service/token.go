@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 	pb "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
@@ -28,78 +29,17 @@ func NewTokenService(
 	}
 }
 
-// // GenerateTokens генерирует пару токенов (access и refresh) для пользователя.
-// func (s *TokenService) GenerateTokens(
-// 	ctx context.Context,
-// 	user *pb.User,
-// 	ipAddress, userAgent string,
-// ) (string, string, error) {
-// 	var userType string
-//
-// 	switch u := user.GetUserType().(type) {
-// 	case *pb.User_Client:
-// 		userType = "client"
-// 	case *pb.User_Staff:
-// 		userType = "staff"
-// 	default:
-// 		return "", "", fmt.Errorf("%w (%s)", domain.ErrUnknownUserType, u)
-// 	}
-//
-// 	// Генерируем access token
-// 	accessToken, err := s.generateAccessToken(user.GetId(), userType)
-// 	if err != nil {
-// 		return "", "", fmt.Errorf("%w (%w)", domain.ErrGenerateToken, err)
-// 	}
-//
-// 	// Генерируем refresh token
-// 	refreshToken, err := s.jwtManager.GenerateRefreshToken(user.GetId())
-// 	if err != nil {
-// 		return "", "", fmt.Errorf("%w (%w)", domain.ErrGenerateToken, err)
-// 	}
-//
-// 	userUUID, err := uuid.Parse(user.GetId())
-// 	if err != nil {
-// 		return "", "", fmt.Errorf("%w (%w)", domain.ErrInvalidUserUUID, err)
-// 	}
-//
-// 	rTokenToStore := models.NewRefreshToken(
-// 		userUUID,
-// 		models.UserType(userType),
-// 		refreshToken,
-// 		time.Now().Add(s.jwtManager.GetRefreshTokenDuration()),
-// 	)
-//
-// 	err = s.tokenRepo.StoreRefreshToken(ctx, rTokenToStore)
-// 	if err != nil {
-// 		return "", "", fmt.Errorf("%w (%w)", domain.ErrInternal, err)
-// 	}
-//
-// 	return accessToken, refreshToken, nil
-// }
+func (t *TokenService) Verify(
+	ctx context.Context,
+	token string,
+) (bool, string, string, string, error) {
+	cl, err := t.jwtManager.VerifyAccessToken(token)
+	if err != nil {
+		return false, "", "", "", fmt.Errorf("%w (%w)", domain.ErrInvalidCode, err)
+	}
 
-// generateAccessToken создает JWT access token с информацией о пользователе.
-// func (s *TokenService) generateAccessToken(
-// 	userID, userType string,
-// ) (string, error) {
-// 	// Генерируем токен через JWT Manager
-// 	token, err := s.jwtManager.Generate(userID, userType)
-// 	if err != nil {
-// 		return "", fmt.Errorf("%w (%w)", domain.ErrInternal, err)
-// 	}
-//
-// 	return token, nil
-// }
-
-// ValidateToken проверяет и декодирует токен.
-// func (s *TokenService) ValidateToken(tokenString string) (*utils.Claims, error) {
-// 	// Проверка токена с помощью JWT Manager
-// 	claims, err := s.jwtManager.Verify(tokenString)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid token: %w", err)
-// 	}
-//
-// 	return claims, nil
-// }
+	return true, cl.UserID, cl.UserPhone, cl.UserType, nil
+}
 
 // // RefreshTokens обновляет пару токенов используя refresh token
 // func (s *TokenService) RefreshTokens(

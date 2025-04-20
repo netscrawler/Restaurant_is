@@ -1,6 +1,12 @@
 env: "local"
 codeLife: "10m"
-notifyClient: "notify:54822"
+
+notifyClient:
+  address: "notify:54822"
+  baseDelay: 1s
+  multiplier: 1.5
+  maxDelay: 5s
+  minConnectTimeout: 5s
 
 db:
   type: "postgres"

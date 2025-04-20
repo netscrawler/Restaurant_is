@@ -16,6 +16,9 @@ var (
 	ErrFailedCreateCode = errors.New("ErrGenerateCode")
 	ErrGenerateToken    = errors.New("ErrGenerateToken")
 	ErrUnknownUserType  = errors.New("ErrUnknownUserType")
+	ErrUserAlreadyExist = errors.New("UserWithThisEmailAlreadyExist")
+	ErrGeneratePassword = errors.New("ErrGeneratePassword")
+	ErrUserDeactivated  = errors.New("ErrUserDeactivated")
 )
 
 // Token errors.

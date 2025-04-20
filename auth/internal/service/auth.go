@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
@@ -128,11 +129,42 @@ func (a *AuthService) LoginClientConfirm(
 	return accessToken, aTokenExpire, refreshToken, rTokenExpire, user, nil
 }
 
-func (a *AuthService) Verify(ctx context.Context, token string) (bool, string, string, error) {
-	cl, err := a.jwtManager.VerifyAccessToken(token)
-	if err != nil {
-		return false, "", "", fmt.Errorf("%w (%w)", domain.ErrInvalidCode, err)
+func (a *AuthService) LoginStaff(
+	ctx context.Context,
+	email string,
+	password string,
+) (string, int64, string, int64, *models.Staff, error) {
+	const op = "service.Auth.LoginStaff"
+	log := a.log.With(zap.String("fn", op), zap.String("email", email))
+
+	user, err := a.staffRepo.GetStaffByEmail(ctx, email)
+	switch {
+	case errors.Is(err, domain.ErrNotFound):
+		log.Info("user not found")
+		return "", 0, "", 0, nil, domain.ErrNotFound
+	case err != nil:
+		log.Info("internal error", zap.String("error", err.Error()))
+		return "", 0, "", 0, nil, domain.ErrInternal
+	default:
 	}
 
-	return true, cl.UserID, cl.UserPhone, nil
+	if !user.IsActive {
+		return "", 0, "", 0, nil, domain.ErrUserDeactivated
+	}
+
+	accessToken, aTokenExpire, refreshToken, rTokenExpire, err := a.jwtManager.GenerateTokenPair(
+		user.ID.String(),
+		string(models.UserTypeStaff),
+		user.WorkEmail,
+	)
+	if err != nil {
+		log.Info("error generating token pair", zap.String("error", err.Error()))
+		return "", 0, "", 0, nil, domain.ErrInternal
+	}
+
+	msg := "Your account has been logged in"
+
+	a.notify.Send(ctx, email, fmt.Sprintf("%s %v", msg, time.Now().Format(time.DateTime)))
+
+	return accessToken, aTokenExpire, refreshToken, rTokenExpire, user, nil
 }

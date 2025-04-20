@@ -25,20 +25,20 @@ type App struct {
 }
 
 func New(log *zap.Logger, cfg config.Config) *App {
-	const op = "app.New"
-
 	db := postgres.MustSetup(context.Background(), cfg.DB.GetURL(), log)
 	clientRepo := repository.NewClient(pgrepo.NewPgClient(db, log))
 	auditRepo := repository.NewAudit(pgrepo.NewPgAudit(db, log))
 	// oauthRepo := repository.NewOAuth(pgrepo.NewPgOauth(db, log))
 	stafRepo := repository.NewStaff(pgrepo.NewPgStaff(db, log))
-	// tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
+	tokenRepo := repository.NewToken(pgrepo.NewPgToken(db, log))
 
 	notifyClient, err := notifyclient.New(context.Background(), cfg.NotifyClient)
 	if err != nil {
 		panic(err)
 	}
+
 	notifySender := notify.New(log, notifyClient)
+
 	jwt, _ := utils.NewJWTManager(cfg.JWT)
 
 	codeProvider := inmemcache.New(cfg.CodeLife)
@@ -54,7 +54,9 @@ func New(log *zap.Logger, cfg config.Config) *App {
 		jwt,
 	)
 	audit := service.NewAuditService(auditRepo, log)
-	gRPCServ := grpcapp.New(log, authService, audit, cfg.GRPCServer.Port)
+	token := service.NewTokenService(tokenRepo, jwt, log)
+	user := service.NewUserService(clientRepo, stafRepo, notifySender, log)
+	gRPCServ := grpcapp.New(log, authService, audit, token, user, cfg.GRPCServer.Port)
 
 	return &App{
 		log:          log,

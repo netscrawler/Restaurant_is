@@ -20,7 +20,14 @@ type App struct {
 	port       int
 }
 
-func New(log *zap.Logger, authService authgrpc.Auth, audit authgrpc.Audit, port int) *App {
+func New(
+	log *zap.Logger,
+	authService authgrpc.Auth,
+	audit authgrpc.Audit,
+	token authgrpc.Token,
+	user authgrpc.User,
+	port int,
+) *App {
 	grpc_zap.ReplaceGrpcLoggerV2(log)
 
 	//nolint:exhaustive
@@ -55,7 +62,7 @@ func New(log *zap.Logger, authService authgrpc.Auth, audit authgrpc.Audit, port 
 			recovery.StreamServerInterceptor(recoveryOpts...),
 		),
 	)
-	authgrpc.Register(gRPCServer, authService, audit)
+	authgrpc.Register(gRPCServer, authService, audit, token, user)
 
 	return &App{
 		log:        log,

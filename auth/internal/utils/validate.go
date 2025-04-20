@@ -103,11 +103,11 @@ func ValidateLoginStaffRequest(req *authv1.LoginStaffRequest) error {
 	}
 
 	// Валидация рабочего email
-	if req.GetWorkEmail() == "" {
+	if req.GetStaff().GetWorkEmail() == "" {
 		return fmt.Errorf("work_email: %w", domain.ErrEmptyField)
 	}
 
-	if !emailRegex.MatchString(req.GetWorkEmail()) {
+	if !emailRegex.MatchString(req.GetStaff().GetWorkEmail()) {
 		return fmt.Errorf("work_email: %w", domain.ErrInvalidEmail)
 	}
 

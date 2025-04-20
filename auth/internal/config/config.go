@@ -20,7 +20,7 @@ type Config struct {
 	JWT          JWTConfig      `yaml:"jwt"`
 	JWTRaw       JWTConfigRaw   `yaml:"jwtRAW"`
 	CodeLife     time.Duration  `yaml:"codeLife"                              env-default:"5m"`
-	NotifyClient string         `yaml:"notifyClient"`
+	NotifyClient NotifyClient   `yaml:"notifyClient"`
 }
 
 type DatabaseConfig struct {
@@ -34,6 +34,15 @@ type DatabaseConfig struct {
 	PoolMaxConn         int           `yaml:"poolMaxConn"         env:"POOL_MAX_CONN"          env-default:"10"`
 	PoolMaxConnLifetime time.Duration `yaml:"poolMaxConnLifetime" env:"POOL_MAX_CONN_LIFETIME" env-default:"1h30m"`
 }
+
+type NotifyClient struct {
+	Address           string        `yaml:"address"`
+	BaseDelay         time.Duration `yaml:"baseDelay"`
+	Multiplier        float64       `yaml:"multiplier"`
+	MaxDelay          time.Duration `yaml:"maxDelay"`
+	MinConnectTimeout time.Duration `yaml:"minConnectTimeout"`
+}
+
 type gRPC struct {
 	Address string `yaml:"address" env:"address" env-default:"address"`
 	Port    int    `yaml:"port"    env:"port"`

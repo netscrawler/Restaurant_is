@@ -4,7 +4,6 @@ PROTO_ROOT=./proto/v1
 GEN_DIR=./gen
 GO_OPTS="paths=source_relative"
 
-# Скачивание стандартных proto-файлов
 if [ ! -d "./third_party" ]; then
     git clone --depth 1 https://github.com/protocolbuffers/protobuf.git third_party
 fi

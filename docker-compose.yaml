@@ -1,6 +1,6 @@
 services:
   auth_service:
-    build: .
+    build: ./auth
     container_name: auth_service
     ports:
       - "54821:54821"
@@ -9,6 +9,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - default
+  notify:
+    build: ./notify
+    container_name: notify
+    ports:
+      - "54822:54822"
+    environment:
+      # енвы подключения к БД
+      - CONFIG_PATH=config/config.local.docker.yaml
     networks:
       - default
   db:
@@ -30,7 +40,6 @@ services:
       retries: 5
     networks:
       - default
-
 networks:
   default:
     name: risp

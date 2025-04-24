@@ -5,13 +5,12 @@ tasks:
     desc: "Список доступных задач"
     cmds:
       - task --list
-
   up:
     desc: "Запуск всех сервисов"
     cmds:
-      - task: up-network
-      - task: up-notify
+      # - task: up-network
       - task: up-auth
+      - task: up-notify
       # Добавь остальные сервисы по аналогии
       # - task: up-gate
       # - task: up-customer

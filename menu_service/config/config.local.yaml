@@ -1,0 +1,29 @@
+env: "local"
+
+# notifyClient:
+#   address: "notify:54822"
+#   baseDelay: 1s
+#   multiplier: 1.5
+#   maxDelay: 5s
+#   minConnectTimeout: 5s
+minio:
+  endpoint: "localhost:9000"
+  accessKey: "admin"
+  secretKey: "password"
+  useSsl: false
+  bucket: "images"
+
+db:
+  type: "postgres"
+  port: 5432
+  host: "db"
+  user: "postgres"
+  password: "postgres"
+  name: "menu"
+  sslMode: "disable"
+  poolMaxConn: 20
+  poolMaxConnLifetime: "2h"
+
+grpcServer:
+  address: ":54821"
+  port: 54821

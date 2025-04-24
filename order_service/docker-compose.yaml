@@ -1,0 +1,35 @@
+services:
+  menu_service:
+    build: .
+    container_name: user_service
+    ports:
+      - "54823:54821"
+    environment:
+      - CONFIG_PATH=config/config.local.yaml
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - default
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: menu
+    ports:
+      - "5432:5432"
+    command: postgres
+    volumes:
+      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+networks:
+  default:
+    name: risp

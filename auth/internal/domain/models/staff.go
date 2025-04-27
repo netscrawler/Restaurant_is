@@ -34,6 +34,7 @@ func (s *Staff) IsActiveString() string {
 	if s.IsActive {
 		return "Active"
 	}
+
 	return "Inactive"
 }
 
@@ -46,8 +47,10 @@ func (s *Staff) UpdatePassword(newPassword string) error {
 	if s.NeedChangePassword {
 		s.NeedChangePassword = false
 	}
+
 	s.PasswordHash = newPswd
 	s.UpdatedAt = time.Now()
+
 	return nil
 }
 

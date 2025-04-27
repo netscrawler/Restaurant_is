@@ -19,8 +19,6 @@ WORKDIR /auth
 
 COPY --from=builder /app/auth .
 
-COPY --from=builder /app/config ./config
-
 # Если нужны сертификаты (например, mTLS, HTTPS)
 # COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 

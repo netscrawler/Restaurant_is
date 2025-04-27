@@ -1,0 +1,38 @@
+env: "local"
+codeLife: "10m"
+
+notifyClient:
+  address: "notify:54822"
+  baseDelay: 1s
+  multiplier: 1.5
+  maxDelay: 5s
+  minConnectTimeout: 5s
+
+db:
+  type: "postgres"
+  port: 5432
+  host: "auth_db"
+  user: "postgres"
+  password: "postgres"
+  name: "auth"
+  sslMode: "disable"
+  poolMaxConn: 20
+  poolMaxConnLifetime: "2h"
+
+grpcServer:
+  address: ":54821"
+  port: 54821
+
+yandex_o_auth:
+  yandexClientId: "your_yandex_app_id"
+  yandexClientSecret: "your_yandex_app_secret"
+  yandexRedirectUrl: "https://your-domain.com/auth/yandex/callback"
+
+jwtRAW:
+  privateKey: "config/private.pem"
+  publicKey: "config/public.pem"
+  refreshPrivateKey: "config/private.pem"
+  refreshPublicKey: "config/public.pem"
+  accessTtl: 15m
+  refreshTtl: 168h # 7 дней
+  issuer: "auth.service.local"

@@ -32,37 +32,37 @@ tasks:
     desc: "Запуск auth"
     dir: ./auth
     cmds:
-      - docker-compose up -d --build
+      - docker compose up -d --build
 
   down-auth:
     desc: "Остановка auth"
     dir: ./auth
     cmds:
-      - docker-compose down
+      - docker compose down
 
   up-network:
     desc: "Создание сети"
     dir: ./deploy
     cmds:
-      - docker-compose up -d
+      - docker compose up -d
 
   down-network:
     desc: "Остановка сети"
     dir: ./deploy
     cmds:
-      - docker-compose down
+      - docker compose down
 
   up-notify:
     desc: "Запуск notify"
     dir: ./notify
     cmds:
-      - docker-compose up -d --build
+      - docker compose up -d --build
 
   down-notify:
     desc: "Остановка notify"
     dir: ./notify
     cmds:
-      - docker-compose down
+      - docker compose down
 
   up-gate:
     desc: "Запуск gate"

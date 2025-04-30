@@ -1,11 +1,14 @@
 services:
   auth_service:
     build: .
+    image: netscrawler/auth-service:latest
     container_name: auth_service
     ports:
       - "54821:54821"
     environment:
-      - CONFIG_PATH=config/config.local.yaml
+      - CONFIG_PATH=/auth/config/config.local.yaml
+    volumes:
+      - ./config:/auth/config:ro
     depends_on:
       db:
         condition: service_healthy

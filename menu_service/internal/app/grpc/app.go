@@ -7,47 +7,53 @@ import (
 	"net"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	menugrpc "github.com/netscrawler/Restaurant_is/menu_service/internal/grpc/menu"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type App struct {
-	log *slog.Logger
-	// gRPCServer *grpc.Server
-	port int
+	log        *slog.Logger
+	gRPCServer *grpc.Server
+	port       int
 }
 
 // New creates new gRPC server app.
 func New(
 	log *slog.Logger,
-	authService any,
+	dishService menugrpc.DishProvider,
+	imageService menugrpc.ImageUrlCreator,
 	port int,
 ) *App {
-	// loggingOpts := []logging.Option{
-	// 	logging.WithLogOnEvents(
-	// 		// logging.StartCall, logging.FinishCall,
-	// 		logging.PayloadReceived, logging.PayloadSent,
-	// 	),
-	// 	// Add any other option (check functions starting with logging.With).
-	// }
+	loggingOpts := []logging.Option{
+		logging.WithLogOnEvents(
+			// logging.StartCall, logging.FinishCall,
+			logging.PayloadReceived, logging.PayloadSent,
+		),
+		// Add any other option (check functions starting with logging.With).
+	}
 
-	// recoveryOpts := []recovery.Option{
-	// 	recovery.WithRecoveryHandler(func(p interface{}) (err error) {
-	// 		log.Error("Recovered from panic", slog.Any("panic", p))
-	//
-	// 		return status.Errorf(codes.Internal, "internal error")
-	// 	}),
-	// }
+	recoveryOpts := []recovery.Option{
+		recovery.WithRecoveryHandler(func(p interface{}) (err error) {
+			log.Error("Recovered from panic", slog.Any("panic", p))
 
-	// gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-	// 	recovery.UnaryServerInterceptor(recoveryOpts...),
-	// 	logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
-	// ))
+			return status.Errorf(codes.Internal, "internal error")
+		}),
+	}
 
-	// authgrpc.Register(gRPCServer, authService)
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		recovery.UnaryServerInterceptor(recoveryOpts...),
+		logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
+	))
+
+	menugrpc.Register(gRPCServer, dishService, imageService)
 
 	return &App{
-		log: log,
-		// gRPCServer: gRPCServer,
-		port: port,
+		log:        log,
+		gRPCServer: gRPCServer,
+		port:       port,
 	}
 }
 
@@ -79,9 +85,9 @@ func (a *App) Run() error {
 
 	a.log.Info("grpc server started", slog.String("addr", l.Addr().String()))
 
-	// if err := a.gRPCServer.Serve(l); err != nil {
-	// 	return fmt.Errorf("%s: %w", op, err)
-	// }
+	if err := a.gRPCServer.Serve(l); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 
 	return nil
 }
@@ -93,5 +99,5 @@ func (a *App) Stop() {
 	a.log.With(slog.String("op", op)).
 		Info("stopping gRPC server", slog.Int("port", a.port))
 
-	// a.gRPCServer.GracefulStop()
+	a.gRPCServer.GracefulStop()
 }

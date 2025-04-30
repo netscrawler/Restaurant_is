@@ -9,8 +9,7 @@ import (
 )
 
 type Storage struct {
-	log   *slog.Logger
-	Minio *minio.Client
+	*minio.Client
 }
 
 // MustSetup подключается к MinIO, валидирует соединение и возвращает инстанс Storage.
@@ -19,6 +18,7 @@ func MustSetup(
 	ctx context.Context,
 	endpoint, accessKey, secretKey string,
 	useSSL bool,
+	buckets []string,
 	log *slog.Logger,
 ) *Storage {
 	logger := log.With("storage", "mini_io")
@@ -35,7 +35,7 @@ func MustSetup(
 	}
 
 	// Проверка доступности
-	_, err = client.ListBuckets(ctx)
+	existBuckets, err := client.ListBuckets(ctx)
 	if err != nil {
 		stLogger.ErrorContext(ctx, "error connect client", slog.String("error", err.Error()))
 		panic(err)
@@ -43,8 +43,30 @@ func MustSetup(
 
 	stLogger.InfoContext(ctx, "Successfully connected to MinIO")
 
+	stLogger.InfoContext(ctx, "Check exist buckets")
+
+	existBucketsMap := make(map[string]struct{})
+
+	for _, b := range existBuckets {
+		existBucketsMap[b.Name] = struct{}{}
+	}
+
+	for _, b := range buckets {
+		_, ok := existBucketsMap[b]
+		if !ok {
+			stLogger.InfoContext(ctx, "bucket not found creating new", slog.String("bucket", b))
+			client.MakeBucket(ctx, b, minio.MakeBucketOptions{
+				// TODO: add region creation from config
+				Region:        "",
+				ObjectLocking: true,
+			})
+		}
+
+	}
+
+	stLogger.InfoContext(ctx, "all buckets ready")
+
 	return &Storage{
-		log:   logger,
-		Minio: client,
+		client,
 	}
 }

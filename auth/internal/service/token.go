@@ -7,7 +7,6 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
-	pb "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
 	"go.uber.org/zap"
 )
 
@@ -98,35 +97,37 @@ func (t *TokenService) Verify(
 
 // RevokeToken отзывает refresh токен
 // func (s *TokenService) RevokeToken(
-// 	ctx context.Context,
-// 	refreshToken, ipAddress, userAgent string,
-// ) error {
-// 	// Проверяем существование токена
-// 	storedToken, err := s.tokenRepo.GetRefreshToken(ctx, refreshToken)
-// 	if err != nil {
-// 		return fmt.Errorf("refresh token not found: %w", err)
-// 	}
 //
-// 	// Отзываем токен
-// 	err = s.tokenRepo.DeleteRefreshToken(ctx, refreshToken)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to revoke token: %w", err)
-// 	}
+//	ctx context.Context,
+//	refreshToken, ipAddress, userAgent string,
 //
-// 	// Логируем действие отзыва токена
-// 	_ = s.tokenRepo.LogTokenAction(
-// 		ctx,
-// 		storedToken.UserID,
-// 		storedToken.UserType,
-// 		"token_revoke",
-// 		ipAddress,
-// 		userAgent,
-// 	)
+//	) error {
+//		// Проверяем существование токена
+//		storedToken, err := s.tokenRepo.GetRefreshToken(ctx, refreshToken)
+//		if err != nil {
+//			return fmt.Errorf("refresh token not found: %w", err)
+//		}
 //
-// 	return nil
-// }
+//		// Отзываем токен
+//		err = s.tokenRepo.DeleteRefreshToken(ctx, refreshToken)
+//		if err != nil {
+//			return fmt.Errorf("failed to revoke token: %w", err)
+//		}
 //
-// // RevokeAllUserTokens отзывает все токены пользователя (выход со всех устройств)
+//		// Логируем действие отзыва токена
+//		_ = s.tokenRepo.LogTokenAction(
+//			ctx,
+//			storedToken.UserID,
+//			storedToken.UserType,
+//			"token_revoke",
+//			ipAddress,
+//			userAgent,
+//		)
+//
+//		return nil
+//	}
+//
+// RevokeAllUserTokens отзывает все токены пользователя (выход со всех устройств)
 // func (s *TokenService) RevokeAllUserTokens(
 // 	ctx context.Context,
 // 	userID, userType, ipAddress, userAgent string,
@@ -142,34 +143,34 @@ func (t *TokenService) Verify(
 //
 // 	return nil
 // }
-//
-// // CleanupExpiredTokens удаляет все истекшие токены
+
+// CleanupExpiredTokens удаляет все истекшие токены
 // func (s *TokenService) CleanupExpiredTokens(ctx context.Context) (int64, error) {
 // 	return s.tokenRepo.CleanupExpiredTokens(ctx)
 // }
 
 // Вспомогательный метод для получения пользователя по ID.
 // В реальном приложении нужно реализовать этот метод или внедрить UserRepository.
-func (s *TokenService) getUserByID(ctx context.Context, userID, userType string) (*pb.User, error) {
-	// Пример-заглушка
-	// В реальном коде здесь будет запрос к базе данных или другому сервису
-	user := &pb.User{
-		Id: userID,
-	}
-
-	// Заполняем информацию в зависимости от типа пользователя
-	switch userType {
-	case "client":
-		user.UserType = &pb.User_Client{
-			Client: &pb.Client{},
-		}
-	case "staff":
-		user.UserType = &pb.User_Staff{
-			Staff: &pb.Staff{},
-		}
-	default:
-		return nil, fmt.Errorf("unknown user type: %s", userType)
-	}
-
-	return user, nil
-}
+// func (s *TokenService) getUserByID(ctx context.Context, userID, userType string) (*pb.User, error) {
+// 	// Пример-заглушка
+// 	// В реальном коде здесь будет запрос к базе данных или другому сервису
+// 	user := &pb.User{
+// 		Id: userID,
+// 	}
+//
+// 	// Заполняем информацию в зависимости от типа пользователя
+// 	switch userType {
+// 	case "client":
+// 		user.UserType = &pb.User_Client{
+// 			Client: &pb.Client{},
+// 		}
+// 	case "staff":
+// 		user.UserType = &pb.User_Staff{
+// 			Staff: &pb.Staff{},
+// 		}
+// 	default:
+// 		return nil, fmt.Errorf("unknown user type: %s", userType)
+// 	}
+//
+// 	return user, nil
+// }

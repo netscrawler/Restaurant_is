@@ -11,9 +11,11 @@ import (
 )
 
 type Config struct {
-	Env        string         `yaml:"env"        env:"ENV"                env-default:"local"`
-	DB         DatabaseConfig `yaml:"db"         env:"DATABASE_CONFIG"`
-	GRPCServer gRPC           `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
+	Env            string         `yaml:"env"        env:"ENV"                env-default:"local"`
+	DB             DatabaseConfig `yaml:"db"         env:"DATABASE_CONFIG"`
+	GRPCServer     gRPC           `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
+	Kafka          Kafka          `yaml:"kafka"      env:"KAFKA_CONFIG"`
+	ProcessTimeout time.Duration  `yaml:"processTimeout" env:"PROCESS_TIMEOUT" env-default:"5s"`
 }
 
 type DatabaseConfig struct {
@@ -29,8 +31,15 @@ type DatabaseConfig struct {
 }
 
 type gRPC struct {
-	Address string `yaml:"address" env:"address" env-default:"address"`
-	Port    int    `yaml:"port"    env:"port"`
+	Address string `yaml:"address" env:"GRPC_SERVER_ADDRESS" env-default:"address"`
+	Port    int    `yaml:"port"    env:"GRPC_SERVER_PORT"    env-default:"port"`
+}
+
+type Kafka struct {
+	Brokers         []string `yaml:"brokers" env:"KAFKA_BROKERS" env-default:"localhost:9092"`
+	Topic           string   `yaml:"topic"   env:"KAFKA_TOPIC"   env-default:"events"`
+	RetryMax        int      `yaml:"retryMax" env:"KAFKA_RETRY_MAX" env-default:"5"`
+	ReturnSuccesses bool     `yaml:"returnSuccesses" env:"KAFKA_RETURN_SUCCESSES" env-default:"true"`
 }
 
 func MustLoad() *Config {

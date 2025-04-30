@@ -7,7 +7,7 @@ services:
     environment:
       - CONFIG_PATH=config/config.local.yaml
     depends_on:
-      db:
+      auth_db:
         condition: service_healthy
     networks:
       - default
@@ -17,13 +17,12 @@ services:
     ports:
       - "54822:54822"
     environment:
-      # енвы подключения к БД
       - CONFIG_PATH=config/config.local.docker.yaml
     networks:
       - default
-  db:
+  auth_db:
     image: postgres:latest
-    container_name: db
+    container_name: auth_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -40,6 +39,43 @@ services:
       retries: 5
     networks:
       - default
+  menu_db:
+    image: postgres:latest
+    container_name: menu_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: menu
+    ports:
+      - "5432:5432"
+    command: postgres
+    volumes:
+      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web UI
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001" /data
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 networks:
   default:
     name: risp

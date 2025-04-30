@@ -1,7 +1,0 @@
-auth/config/*.pem
-notify/config/*
-<<<<<<< HEAD
-=======
-deploy/config
-deploy/config/notify/*
->>>>>>> 1c24b32 (fixup! feat nothing)

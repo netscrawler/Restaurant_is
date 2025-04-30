@@ -1,4 +1,5 @@
 auth/config/*.pem
 notify/config/*
-deploy/config
-deploy/config/notify/*
+./deploy/config
+./deploy/config/notify/*
+./deploy/*

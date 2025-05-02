@@ -11,19 +11,19 @@ RUN CGO_ENABLED=0 go build \
     -trimpath \
     -ldflags="-s -w -buildid= -extldflags=-static" \
     -buildvcs=false \
-    -o auth ./cmd/menu
+    -o menu ./cmd/menu
 
 FROM gcr.io/distroless/static-debian12
 
 WORKDIR /menu
 
-COPY --from=builder /app/auth .
+COPY --from=builder /app/menu .
 
 COPY --from=builder /app/config ./config
 
 # Если нужны сертификаты (например, mTLS, HTTPS)
 # COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-EXPOSE 54821
+EXPOSE 54823
 
 CMD ["./menu"]

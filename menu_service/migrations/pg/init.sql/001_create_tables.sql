@@ -26,13 +26,3 @@ CREATE TABLE dishes (
 CREATE INDEX idx_dishes_category ON dishes(category_id);
 CREATE INDEX idx_dishes_availability ON dishes(is_available);
 
-CREATE TABLE promotions (
-    id SERIAL PRIMARY KEY,
-    dish_id INT NOT NULL REFERENCES dishes(id),
-    discount_percent INT CHECK (discount_percent BETWEEN 1 AND 9900), -- Скидка 10%
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    CONSTRAINT valid_dates CHECK (end_date > start_date)
-);
-
-

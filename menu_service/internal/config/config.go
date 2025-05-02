@@ -15,6 +15,7 @@ type Config struct {
 	DB         DatabaseConfig `yaml:"db"         env:"DATABASE_CONFIG"`
 	GRPCServer gRPC           `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
 	MinIO      MinIOConfig    `yaml:"minio"      env:"MINIO_CONFIG"`
+	UrlExpiry  time.Duration  `yaml:"urlExpiry"`
 }
 
 type MinIOConfig struct {

@@ -13,8 +13,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type CategoryProvider interface{}
-
 type DishProvider interface {
 	// Create and save new dish.
 	Create(ctx context.Context, dish *dto.Dish) (*dto.Dish, error)
@@ -23,10 +21,8 @@ type DishProvider interface {
 	// Update dish in storage.
 	Update(ctx context.Context, dish *dto.UpdateDishReq) (*dto.Dish, error)
 	// List returns dish by filter, offset and limit.
-	List(ctx context.Context, filter *dto.ListDishReq) ([]dto.Dish, error)
+	List(ctx context.Context, filter *dto.ListDishFilter) ([]dto.Dish, error)
 }
-
-type PromotionProvider interface{}
 
 type ImageUrlCreator interface {
 	// CreateURL generate s3 pre-signed url to save image.
@@ -37,44 +33,13 @@ type ImageUrlCreator interface {
 }
 
 type serverAPI struct {
-	category  CategoryProvider
-	dish      DishProvider
-	promotion PromotionProvider
-	image     ImageUrlCreator
+	dish  DishProvider
+	image ImageUrlCreator
 	menuv1.UnimplementedMenuServiceServer
 }
 
-// Категории.
-// func (s *serverAPI) CreateCategory(
-// 	ctx context.Context,
-// 	in *menuv1.CategoryRequest,
-// ) (*menuv1.CategoryResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-//
-// func (s *serverAPI) UpdateCategory(
-// 	ctx context.Context,
-// 	in *menuv1.UpdateCategoryRequest,
-// ) (*menuv1.CategoryResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-//
-// func (s *serverAPI) ListCategories(
-// 	ctx context.Context,
-// 	in *menuv1.ListCategoriesRequest,
-// ) (*menuv1.ListCategoriesResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-//
-// func (s *serverAPI) DeleteCategory(
-// 	ctx context.Context,
-// 	in *menuv1.DeleteCategoryRequest,
-// ) (*emptypb.Empty, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-
 // Блюда.
-func (s *serverAPI) Create(
+func (s *serverAPI) CreateDish(
 	ctx context.Context,
 	in *menuv1.DishRequest,
 ) (*menuv1.DishResponse, error) {
@@ -102,7 +67,7 @@ func (s *serverAPI) Create(
 	}, nil
 }
 
-func (s *serverAPI) Update(
+func (s *serverAPI) UpdateDish(
 	ctx context.Context,
 	in *menuv1.UpdateDishRequest,
 ) (*menuv1.DishResponse, error) {
@@ -137,7 +102,7 @@ func (s *serverAPI) Update(
 	}, nil
 }
 
-func (s *serverAPI) Get(
+func (s *serverAPI) GetDish(
 	ctx context.Context,
 	in *menuv1.GetDishRequest,
 ) (*menuv1.DishResponse, error) {
@@ -186,28 +151,6 @@ func (s *serverAPI) ListDishes(
 	}, nil
 }
 
-// // Акции.
-// func (s *serverAPI) CreatePromotion(
-// 	ctx context.Context,
-// 	in *menuv1.PromotionRequest,
-// ) (*menuv1.PromotionResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-//
-// func (s *serverAPI) UpdatePromotion(
-// 	ctx context.Context,
-// 	in *menuv1.UpdatePromotionRequest,
-// ) (*menuv1.PromotionResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-//
-// func (s *serverAPI) ListActivePromotions(
-// 	ctx context.Context,
-// 	in *emptypb.Empty,
-// ) (*menuv1.ListPromotionsResponse, error) {
-// 	panic("not implemented") // TODO: Implement
-// }
-
 // Изображения.
 func (s *serverAPI) GenerateUploadURL(
 	ctx context.Context,
@@ -231,14 +174,13 @@ func (s *serverAPI) GenerateUploadURL(
 func Register(
 	gRPCServer *grpc.Server,
 	dish DishProvider,
-	promotion PromotionProvider,
-	category CategoryProvider,
+	image ImageUrlCreator,
 ) {
 	menuv1.RegisterMenuServiceServer(
 		gRPCServer,
 		&serverAPI{
-			category: category,
-			dish:     dish,
+			dish:  dish,
+			image: image,
 		},
 	)
 }

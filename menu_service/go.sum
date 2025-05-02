@@ -60,6 +60,8 @@ github.com/netscrawler/RispProtos/proto v0.0.0-20250428115248-97755123aca5 h1:wc
 github.com/netscrawler/RispProtos/proto v0.0.0-20250428115248-97755123aca5/go.mod h1:SB9+EwR2dvHTv0+q+eSAYEMEdg3oIbjStVyA29PV/JU=
 github.com/netscrawler/RispProtos/proto v0.0.0-20250428115535-d731c2135371 h1:8g+AYaoq4SNGanAQNb03ThL16jJ6dX4xggP2PYMHoG0=
 github.com/netscrawler/RispProtos/proto v0.0.0-20250428115535-d731c2135371/go.mod h1:SB9+EwR2dvHTv0+q+eSAYEMEdg3oIbjStVyA29PV/JU=
+github.com/netscrawler/RispProtos/proto v0.0.0-20250502120039-fb5254fd249f h1:dsL4LSAgOkSRUWYyTM4//6DxA7AKzymVmAcxUgHdOrk=
+github.com/netscrawler/RispProtos/proto v0.0.0-20250502120039-fb5254fd249f/go.mod h1:SB9+EwR2dvHTv0+q+eSAYEMEdg3oIbjStVyA29PV/JU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
@@ -96,6 +98,8 @@ golang.org/x/text v0.24.0 h1:dd5Bzh4yt5KYA8f9CJHCP4FB4D51c2c6JvN37xJJkJ0=
 golang.org/x/text v0.24.0/go.mod h1:L8rBsPeo2pSS+xqN0d5u2ikmjtmoJbDBT1b7nHvFCdU=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250425173222-7b384671a197 h1:29cjnHVylHwTzH66WfFZqgSQgnxzvWE+jvBwpZCLRxY=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250425173222-7b384671a197/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34 h1:h6p3mQqrmT1XkHVTfzLdNz1u7IhINeZkz67/xTbOuWs=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.72.0 h1:S7UkcVa60b5AAQTaO6ZKamFp1zMZSU0fGDK2WZLbBnM=
 google.golang.org/grpc v1.72.0/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
 google.golang.org/protobuf v1.36.6 h1:z1NpPI8ku2WgiWnf+t9wTPsn6eP1L7ksHUlkfLvd9xY=

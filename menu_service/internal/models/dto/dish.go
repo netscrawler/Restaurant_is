@@ -53,15 +53,15 @@ func NewUpdateDishReq(
 	}
 }
 
-type ListDishReq struct {
+type ListDishFilter struct {
 	CategoryID    *int32
 	OnlyAvailable bool
 	Page          int32
 	PageSize      int32
 }
 
-func NewListDishReq(categoryID *int32, available bool, page, pageSize int32) *ListDishReq {
-	return &ListDishReq{
+func NewListDishReq(categoryID *int32, available bool, page, pageSize int32) *ListDishFilter {
+	return &ListDishFilter{
 		CategoryID:    categoryID,
 		OnlyAvailable: available,
 		Page:          page,

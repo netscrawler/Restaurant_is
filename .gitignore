@@ -3,3 +3,4 @@ notify/config/*
 ./deploy/config
 ./deploy/config/notify/*
 ./deploy/*
+deploy/config/notify/config.local.docker.yaml

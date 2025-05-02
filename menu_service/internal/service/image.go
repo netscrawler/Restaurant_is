@@ -30,6 +30,14 @@ type Image struct {
 	expiry     time.Duration
 }
 
+func NewImageService(repo Storage, bucket string, expiry time.Duration) *Image {
+	return &Image{
+		storage:    repo,
+		bucketName: bucket,
+		expiry:     expiry,
+	}
+}
+
 // CreateURL generates a pre-signed URL to upload an image via PUT method.
 func (i *Image) CreateURL(
 	ctx context.Context,

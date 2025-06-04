@@ -15,15 +15,15 @@ type Config struct {
 	DB         DatabaseConfig `yaml:"db"         env:"DATABASE_CONFIG"`
 	GRPCServer gRPC           `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
 	MinIO      MinIOConfig    `yaml:"minio"      env:"MINIO_CONFIG"`
-	UrlExpiry  time.Duration  `yaml:"urlExpiry"`
 }
 
 type MinIOConfig struct {
-	Endpoint  string `yaml:"endpoint"  env:"MINIO_ENDPOINT"   env-default:"localhost:9000"`
-	AccessKey string `yaml:"accessKey" env:"MINIO_ACCESS_KEY" env-default:"admin"`
-	SecretKey string `yaml:"secretKey" env:"MINIO_SECRET_KEY" env-default:"password"`
-	UseSSL    bool   `yaml:"useSsl"    env:"MINIO_USE_SSL"    env-default:"false"`
-	Bucket    string `yaml:"bucket"    env:"MINIO_BUCKET"     env-default:"images"`
+	Endpoint  string        `yaml:"endpoint"  env:"MINIO_ENDPOINT"   env-default:"localhost:9000"`
+	AccessKey string        `yaml:"accessKey" env:"MINIO_ACCESS_KEY" env-default:"admin"`
+	SecretKey string        `yaml:"secretKey" env:"MINIO_SECRET_KEY" env-default:"password"`
+	UseSSL    bool          `yaml:"useSsl"    env:"MINIO_USE_SSL"    env-default:"false"`
+	Bucket    string        `yaml:"bucket"    env:"MINIO_BUCKET"     env-default:"images"`
+	UrlExpiry time.Duration `yaml:"urlExpiry"`
 }
 
 type DatabaseConfig struct {

@@ -35,7 +35,11 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 
 	dishRepo := repository.NewDishRepository(pgrepo.NewDishPgRepo(pgStorage))
 	dishService := service.NewDishService(dishRepo)
-	imageService := service.NewImageService(minioStorage.Client, cfg.MinIO.Bucket, cfg.UrlExpiry)
+	imageService := service.NewImageService(
+		minioStorage.Client,
+		cfg.MinIO.Bucket,
+		cfg.MinIO.UrlExpiry,
+	)
 
 	// Настройка gRPC сервера
 	grpcApp := grpcapp.New(

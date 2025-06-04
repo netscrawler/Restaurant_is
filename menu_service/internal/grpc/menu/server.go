@@ -128,7 +128,12 @@ func (s *serverAPI) ListDishes(
 	ctx context.Context,
 	in *menuv1.ListDishesRequest,
 ) (*menuv1.ListDishesResponse, error) {
-	req := dto.NewListDishReq(in.CategoryId, in.OnlyAvailable, in.Page, in.PageSize)
+	req := dto.NewListDishReq(
+		in.CategoryId,
+		in.OnlyAvailable,
+		in.Page,
+		in.PageSize,
+	)
 
 	dishes, err := s.dish.List(ctx, req)
 	if err != nil {

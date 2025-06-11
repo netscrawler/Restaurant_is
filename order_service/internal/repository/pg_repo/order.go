@@ -44,7 +44,7 @@ func (o *PgOrder) Save(ctx context.Context, order *dto.Order) error {
 			order.Address,
 			order.DishQuantites,
 		).
-		Suffix("ON CONFLICT (id) DO NOTHING RETURNING num")
+		Suffix("RETURNING num")
 
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -113,4 +113,8 @@ func (o *PgOrder) Get(ctx context.Context, id string) (*dto.Order, error) {
 	}
 
 	return &order, rows.Err()
+}
+
+func (o *PgOrder) Update(ctx context.Context, order *dto.Order) error {
+	return nil
 }

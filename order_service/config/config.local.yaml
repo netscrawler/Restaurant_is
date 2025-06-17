@@ -12,5 +12,5 @@ db:
   poolMaxConnLifetime: "2h"
 
 grpcServer:
-  address: ":54821"
+  address: "localhost"
   port: 54821

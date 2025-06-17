@@ -23,16 +23,18 @@ type App struct {
 // New creates new gRPC server app.
 func New(
 	log *slog.Logger,
-	authService any,
+	orderService ordergrpc.OrderProvider,
 	port int,
 ) *App {
 	loggingOpts := []logging.Option{
 		logging.WithLogOnEvents(
-			// logging.StartCall, logging.FinishCall,
+			logging.StartCall, logging.FinishCall,
 			logging.PayloadReceived, logging.PayloadSent,
 		),
 		// Add any other option (check functions starting with logging.With).
 	}
+
+	log = log.With(slog.Any("server", "grpc"))
 
 	recoveryOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p any) (err error) {
@@ -47,12 +49,12 @@ func New(
 		logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
 	))
 
-	ordergrpc.Register(gRPCServer, nil)
+	ordergrpc.Register(gRPCServer, orderService)
 
 	return &App{
-		log: log,
-		// gRPCServer: gRPCServer,
-		port: port,
+		log:        log,
+		gRPCServer: gRPCServer,
+		port:       port,
 	}
 }
 

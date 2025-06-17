@@ -1,0 +1,27 @@
+env: production
+db:
+  type: postgres
+  port: 5432
+  host: localhost
+  user: user
+  password: password
+  name: postgres
+  sslMode: false
+  poolMaxConn: 10
+  poolMaxConnLifetime: 1h30m
+grpcServer:
+  address: 0.0.0.0
+  port: 50051
+kafka:
+  brokers:
+    - localhost:9092
+  topic: events
+  retryMax: 5
+  returnSuccesses: true
+processTimeout: 30s
+menuClient:
+  address: http://menu-service:8080
+  baseDelay: 100ms
+  multiplier: 2.0
+  maxDelay: 5s
+  minConnectTimeout: 1s

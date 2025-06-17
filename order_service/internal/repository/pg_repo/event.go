@@ -4,8 +4,8 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
-	dto "github.com/netscrawler/Restaurant_is/order_service/internal/models/repository"
-	"github.com/netscrawler/Restaurant_is/order_service/internal/storage/postgres"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/infra/in/postgres"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/models/repository"
 )
 
 type PgEvent struct {
@@ -20,7 +20,7 @@ func NewPgEvent(db *postgres.Storage) *PgEvent {
 	}
 }
 
-func (e *PgEvent) Save(ctx context.Context, event *dto.Event) error {
+func (e *PgEvent) Save(ctx context.Context, event *repository.Event) error {
 	query := e.builder.Insert("events").
 		Columns("id", "type", "payload", "published").
 		Values(event.ID, event.Type, event.Payload, false)
@@ -34,7 +34,7 @@ func (e *PgEvent) Save(ctx context.Context, event *dto.Event) error {
 	return err
 }
 
-func (e *PgEvent) GetUnpublishedEvents(ctx context.Context) ([]dto.Event, error) {
+func (e *PgEvent) GetUnpublishedEvents(ctx context.Context) ([]*repository.Event, error) {
 	query := e.builder.Select("id", "type", "payload").
 		From("events").
 		Where(sq.Eq{"published": false})
@@ -50,13 +50,13 @@ func (e *PgEvent) GetUnpublishedEvents(ctx context.Context) ([]dto.Event, error)
 	}
 	defer rows.Close()
 
-	var events []dto.Event
+	var events []*repository.Event
 	for rows.Next() {
-		var event dto.Event
+		var event repository.Event
 		if err := rows.Scan(&event.ID, &event.Type, &event.Payload); err != nil {
 			return nil, err
 		}
-		events = append(events, event)
+		events = append(events, &event)
 	}
 
 	return events, rows.Err()

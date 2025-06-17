@@ -14,15 +14,15 @@ const AnswerTimeout = 15 * time.Second
 
 type OrderProvider interface {
 	Save(ctx context.Context, order *repository.Order) (uint64, error)
-	Get(ctx context.Context, orderID uuid.UUID) (*domain.Order, error)
+	Get(ctx context.Context, orderID uuid.UUID) (*repository.Order, error)
 }
 
 type EventSaver interface {
-	Save(ctx context.Context, event repository.Event) error
+	Save(ctx context.Context, event *repository.Event) error
 }
 
 type DishGetter interface {
-	Get(ctx context.Context, dishes []uuid.UUID) ([]dto.Dish, error)
+	Get(ctx context.Context, dishes []uuid.UUID) ([]*dto.Dish, error)
 }
 
 type Order struct {
@@ -39,7 +39,7 @@ func NewOrder(repo OrderProvider, event EventSaver, dish DishGetter) *Order {
 	}
 }
 
-func (o *Order) Create(ctx context.Context, order dto.OrderToCreate) error {
+func (o *Order) Create(ctx context.Context, order *dto.OrderToCreate) (*dto.OrderCreated, error) {
 	dishCtx, cancel := context.WithTimeout(ctx, AnswerTimeout)
 	defer cancel()
 
@@ -57,7 +57,7 @@ func (o *Order) Create(ctx context.Context, order dto.OrderToCreate) error {
 	for _, d := range dishes {
 		for _, item := range order.Items {
 			if d.ID == item.Item {
-				dish := domain.NewDish(d)
+				dish := domain.NewDish(*d)
 				dishMap[*dish] = item.Quanity
 			}
 		}
@@ -70,25 +70,33 @@ func (o *Order) Create(ctx context.Context, order dto.OrderToCreate) error {
 		string(order.DeliveryAddress),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	orderNum, err := o.repo.Save(ctx, repository.NewOrder(domainOrder))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	domainOrder.SetNUM(orderNum)
 
-	return nil
+	orderCreated, _ := dto.NewOrderCreated(
+		domainOrder.ID(),
+		domainOrder.NUM(),
+		domainOrder.UserID(),
+		domainOrder.Price(),
+		domainOrder.Status(),
+	)
+
+	return orderCreated, nil
 }
 
 func (o *Order) UpdateStatus(ctx context.Context, orderID uuid.UUID, newStatus string) error {
-	order, err := o.repo.Get(ctx, orderID)
-	if err != nil {
-		return err
-	}
+	// order, err := o.repo.Get(ctx, orderID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	_, err = o.repo.Save(ctx, repository.NewOrder(order))
-	return err
+	// _, err = o.repo.Save(ctx, repository.NewOrder(order))
+	return nil
 }

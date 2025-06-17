@@ -1,4 +1,4 @@
-package primary
+package kafka
 
 import (
 	"context"

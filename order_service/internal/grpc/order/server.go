@@ -18,7 +18,7 @@ type serverAPI struct {
 }
 
 type OrderProvider interface {
-	CreateOrder(ctx context.Context, order *dto.OrderToCreate) (*dto.OrderCreated, error)
+	Create(ctx context.Context, order *dto.OrderToCreate) (*dto.OrderCreated, error)
 	// GetOrder(ctx context.Context, orderID string) (dto.Order, error)
 	// ListOrders(ctx context.Context, filter dto.OrderFilter) ([]dto.Order, error)
 	// UpdateOrderStatus(ctx context.Context, orderID string, status dto.OrderStatus) error
@@ -63,7 +63,7 @@ func (s *serverAPI) CreateOrder(
 		items,
 	)
 
-	createdOrder, err := s.orderProvider.CreateOrder(ctx, orderToCreate)
+	createdOrder, err := s.orderProvider.Create(ctx, orderToCreate)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create order: %v", err)
 	}

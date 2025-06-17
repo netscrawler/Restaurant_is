@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/netscrawler/Restaurant_is/order_service/internal/config"
-	dto "github.com/netscrawler/Restaurant_is/order_service/internal/models/repository"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/models/repository"
 )
 
 type EventRepository interface {
-	Save(ctx context.Context, event *dto.Event) error
-	GetUnpublishedEvents(ctx context.Context) ([]*dto.Event, error)
+	Save(ctx context.Context, event *repository.Event) error
+	GetUnpublishedEvents(ctx context.Context) ([]*repository.Event, error)
 	MarkAsPublished(ctx context.Context, eventID string) error
 }
 
 type KafkaPublisher interface {
-	PublishEvent(ctx context.Context, event *dto.Event) error
+	PublishEvent(ctx context.Context, event *repository.Event) error
 }
 
 type Event struct {
@@ -41,7 +41,7 @@ func NewEventService(
 	}
 }
 
-func (s *Event) SaveEvent(ctx context.Context, event *dto.Event) error {
+func (s *Event) SaveEvent(ctx context.Context, event *repository.Event) error {
 	return s.repo.Save(ctx, event)
 }
 

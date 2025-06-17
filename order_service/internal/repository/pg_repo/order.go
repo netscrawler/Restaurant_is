@@ -4,8 +4,9 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/google/uuid"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/infra/in/postgres"
 	dto "github.com/netscrawler/Restaurant_is/order_service/internal/models/repository"
-	"github.com/netscrawler/Restaurant_is/order_service/internal/storage/postgres"
 )
 
 type PgOrder struct {
@@ -20,7 +21,7 @@ func NewPgOrder(db *postgres.Storage) *PgOrder {
 	}
 }
 
-func (o *PgOrder) Save(ctx context.Context, order *dto.Order) error {
+func (o *PgOrder) Save(ctx context.Context, order *dto.Order) (uint64, error) {
 	query := o.builder.Insert("orders").
 		Columns(
 			"id",
@@ -48,26 +49,27 @@ func (o *PgOrder) Save(ctx context.Context, order *dto.Order) error {
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	rows, err := o.storage.DB.Query(ctx, sql, args...)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer rows.Close()
 
 	var num uint64
 	if rows.Next() {
 		if err := rows.Scan(&num); err != nil {
-			return err
+			return 0, err
 		}
 	}
 
-	return rows.Err()
+	return num, rows.Err()
 }
 
-func (o *PgOrder) Get(ctx context.Context, id string) (*dto.Order, error) {
+func (o *PgOrder) Get(ctx context.Context, id uuid.UUID) (*dto.Order, error) {
+	uid := id.String()
 	query := o.builder.Select(
 		"id",
 		"user_id",
@@ -81,7 +83,7 @@ func (o *PgOrder) Get(ctx context.Context, id string) (*dto.Order, error) {
 		"dish_quantites",
 	).
 		From("orders").
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": uid})
 
 	sql, args, err := query.ToSql()
 	if err != nil {

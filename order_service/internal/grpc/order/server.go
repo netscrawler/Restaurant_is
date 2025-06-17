@@ -39,13 +39,13 @@ func (s *serverAPI) CreateOrder(
 	ctx context.Context,
 	r *orderv1.CreateOrderRequest,
 ) (*orderv1.OrderResponse, error) {
-	userId, err := uuid.ParseBytes(r.GetUserId().GetValue())
+	userId, err := uuid.Parse(r.GetUserId().GetValue())
 	if err != nil {
 	}
 
 	items := make([]dto.OrderItem, len(r.GetItems()))
 	for i, item := range r.GetItems() {
-		itemID, err := uuid.ParseBytes(item.GetDishId().GetValue())
+		itemID, err := uuid.Parse(item.GetDishId().GetValue())
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid item ID: %v", err)
 		}

@@ -80,7 +80,7 @@ func (m *MenuClient) Get(ctx context.Context, dishes []uuid.UUID) ([]*dto.Dish, 
 func (m *MenuClient) get(ctx context.Context, dish uuid.UUID) (*dto.Dish, error) {
 	resp, err := m.menu.GetDish(ctx, &menuclient.GetDishRequest{
 		DishId: &menuclient.UUID{
-			Value: dish[:],
+			Value: dish.String(),
 		},
 	})
 	if err != nil {

@@ -67,7 +67,7 @@ func (o *Order) Create(ctx context.Context, order *dto.OrderToCreate) (*dto.Orde
 		order.UserID,
 		dishMap,
 		domain.OrderType(order.OrderType),
-		string(order.DeliveryAddress),
+		"any",
 	)
 	if err != nil {
 		return nil, err

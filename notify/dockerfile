@@ -1,8 +1,6 @@
 FROM golang:1.24-alpine AS builder
-RUN apk add --no-cache git
 
-
-WORKDIR /bot
+WORKDIR /app
 
 COPY go.mod go.sum ./
 
@@ -15,10 +13,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o sbot ./cmd/notify/main.go
 FROM gcr.io/distroless/static-debian12
 
 
-WORKDIR /bot
+WORKDIR /notify
 
-COPY --from=builder /bot/sbot .
-COPY --from=builder /bot/config/* ./config/
+COPY --from=builder /app/sbot .
 
 EXPOSE 54822
 

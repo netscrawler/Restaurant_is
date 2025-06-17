@@ -21,8 +21,24 @@ CREATE TABLE dishes (
     image_url VARCHAR(500),                  -- Ссылка на фото в S3: "https://bucket.s3.amazonaws.com/dishes/123.jpg"
     is_available BOOLEAN DEFAULT TRUE,       -- Доступно ли для заказа
     calories INT,                            -- Ккал (опционально)
+
+    created_at TIMESTAMP NOT NULL DEFAULT now(),  -- Дата создания
+    updated_at TIMESTAMP NOT NULL DEFAULT now()   -- Дата последнего обновления
 );
+
 
 CREATE INDEX idx_dishes_category ON dishes(category_id);
 CREATE INDEX idx_dishes_availability ON dishes(is_available);
+
+INSERT INTO categories (name, description, is_active) VALUES
+('Супы', 'Горячие первые блюда', TRUE),
+('Салаты', 'Свежие и питательные салаты', TRUE),
+('Горячие блюда', 'Основные блюда из мяса, рыбы и овощей', TRUE),
+('Гарниры', 'Дополнения к основным блюдам', TRUE),
+('Десерты', 'Сладкие блюда и выпечка', TRUE),
+('Напитки', 'Безалкогольные напитки', TRUE),
+('Завтраки', 'Блюда для утреннего меню', TRUE),
+('Пасты', 'Итальянская паста и соусы', TRUE),
+('Пицца', 'Разнообразные пиццы', TRUE),
+('Соусы', 'Дополнительные соусы к блюдам', TRUE);
 

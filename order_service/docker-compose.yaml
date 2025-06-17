@@ -9,33 +9,32 @@ services:
     ports:
       - "50051:50051" # gRPC port
     environment:
-      - CONFIG_PATH=config/config.local.yaml
-    volumes:
-      - ./config.yaml:/app/config.yaml
+      - CONFIG_PATH=config/config.docker.yaml
     depends_on:
-      db:
+      order_db:
         condition: service_healthy
     networks:
-      - app-network
+      - default
 
-  db:
-    image: postgres:15
+  order_db:
+    image: postgres:latest
+    container_name: order_db
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: order
     ports:
       - "5432:5432"
+    command: postgres
     volumes:
       - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
-      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - app-network
+      - default
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -52,7 +51,7 @@ services:
     ports:
       - "9092:9092"
     networks:
-      - app-network
+      - default
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -64,7 +63,7 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
     networks:
-      - app-network
+      - default
 
 networks:
   app-network:

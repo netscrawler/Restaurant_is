@@ -50,7 +50,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 			func() error { return storage.DB.Ping(context.Background()) },
 		},
 		cfg.GRPCServer.Address,
-		strconv.Itoa(cfg.GRPCServer.Port),
+		strconv.Itoa(cfg.GRPCServer.Port+1),
 	)
 
 	return &App{
@@ -63,6 +63,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 
 func (a *App) MustRun() {
 	a.healz.Start()
+	a.app.MustRun()
 	// panic("err")
 }
 

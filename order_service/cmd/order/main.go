@@ -13,7 +13,7 @@ import (
 const (
 	envLocal = "local"
 	envDev   = "dev"
-	envProd  = "prod"
+	envProd  = "production"
 )
 
 func main() {

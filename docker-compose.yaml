@@ -1,25 +1,89 @@
 services:
   auth_service:
-    build: ./auth
+    build:
+      context: ./auth
+      dockerfile: dockerfile
     container_name: auth_service
     ports:
       - "54821:54821"
     environment:
-      - CONFIG_PATH=config/config.local.yaml
+      - CONFIG_PATH=/auth/config/config.local.yaml
     depends_on:
       auth_db:
         condition: service_healthy
+    volumes:
+      - ./auth/config:/auth/config
     networks:
-      - default
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   notify:
-    build: ./notify
+    build:
+      context: ./notify
+      dockerfile: dockerfile
     container_name: notify
     ports:
       - "54822:54822"
     environment:
-      - CONFIG_PATH=config/config.local.docker.yaml
+      - CONFIG_PATH=/notify/config/config.local.docker.yaml
+    volumes:
+      - ./notify/config:/notify/config
     networks:
-      - default
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  menu_service:
+    build:
+      context: ./menu_service
+      dockerfile: dockerfile
+    container_name: menu_service
+    ports:
+      - "50052:50052"
+    environment:
+      - CONFIG_PATH=/menu/config/config.local.yaml
+    depends_on:
+      menu_db:
+        condition: service_healthy
+    volumes:
+      - ./menu_service/config:/menu/config
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  order_service:
+    build:
+      context: ./order_service
+      dockerfile: dockerfile
+    container_name: order_service
+    ports:
+      - "50051:50051" # gRPC port
+    environment:
+      - CONFIG_PATH=/order/config/config.docker.yaml
+    volumes:
+      - ./order_service/config:/order/config
+    depends_on:
+      order_db:
+        condition: service_healthy
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   auth_db:
     image: postgres:latest
     container_name: auth_db
@@ -29,16 +93,23 @@ services:
       POSTGRES_DB: auth
     ports:
       - "5432:5432"
-    command: postgres
+    command: ["postgres", "-c", "port=5432"]
     volumes:
-      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./auth/migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - auth-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5432"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - default
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   menu_db:
     image: postgres:latest
     container_name: menu_db
@@ -47,23 +118,56 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: menu
     ports:
-      - "5432:5432"
-    command: postgres
+      - "5434:5434"
+    command: ["postgres", "-c", "port=5434"]
     volumes:
-      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./menu_service/migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - menu-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5434"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - default
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  order_db:
+    image: postgres:latest
+    container_name: order_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: order
+    ports:
+      - "5435:5435"
+    command: ["postgres", "-c", "port=5435"]
+    volumes:
+      - ./order_service/migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - order-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5435"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   minio:
     image: minio/minio:latest
     container_name: minio
     ports:
-      - "9000:9000" # S3 API
-      - "9001:9001" # Web UI
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -75,7 +179,117 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=1
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  promtail:
+    image: grafana/promtail:3.2.1
+    container_name: promtail
+    volumes:
+      - ./promtail/positions:/tmp
+      - ./promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    depends_on:
+      - loki
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    depends_on:
+      - loki
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  auth-postgres-data:
+  menu-postgres-data:
+  order-postgres-data:
+  minio-data:
+  zookeeper-data:
+  loki-data:
 
 networks:
-  default:
+  risp:
     name: risp

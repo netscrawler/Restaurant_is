@@ -13,7 +13,7 @@ import (
 type Config struct {
 	Env            string         `yaml:"env"            env:"ENV"`
 	DB             DatabaseConfig `yaml:"db"             env:"DATABASE_CONFIG"`
-	GRPCServer     gRPC           `yaml:"grpcServer"     env:"GRPC_SERVER_CONFIG"`
+	GRPCServer     GRPC           `yaml:"grpcServer"     env:"GRPC_SERVER_CONFIG"`
 	Kafka          Kafka          `yaml:"kafka"          env:"KAFKA_CONFIG"`
 	ProcessTimeout time.Duration  `yaml:"processTimeout" env:"PROCESS_TIMEOUT"`
 	MenuClient     MenuClient     `yaml:"menuClient"     env:"MENU_CLIENT"`
@@ -39,7 +39,7 @@ type DatabaseConfig struct {
 	PoolMaxConnLifetime time.Duration `yaml:"poolMaxConnLifetime" env:"POOL_MAX_CONN_LIFETIME" env-default:"1h30m"`
 }
 
-type gRPC struct {
+type GRPC struct {
 	Address string `yaml:"address" env:"GRPC_SERVER_ADDRESS" env-default:"address"`
 	Port    int    `yaml:"port"    env:"GRPC_SERVER_PORT"    env-default:"port"`
 }

@@ -12,9 +12,9 @@ type OrderToCreate struct {
 }
 
 type OrderCreated struct {
-	ID     []byte
+	ID     string
 	NUM    uint64
-	UserID []byte
+	UserID string
 	Total  uint64
 	Status string
 }
@@ -26,18 +26,10 @@ func NewOrderCreated(
 	total uint64,
 	status string,
 ) (*OrderCreated, error) {
-	oID, err := id.MarshalBinary()
-	if err != nil {
-	}
-
-	uID, err := userID.MarshalBinary()
-	if err != nil {
-	}
-
 	return &OrderCreated{
-		ID:     oID,
+		ID:     id.String(),
 		NUM:    num,
-		UserID: uID,
+		UserID: userID.String(),
 		Total:  total,
 		Status: status,
 	}, nil

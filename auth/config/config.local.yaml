@@ -11,7 +11,7 @@ notifyClient:
 db:
   type: "postgres"
   port: 5432
-  host: "db"
+  host: "auth_db"
   user: "postgres"
   password: "postgres"
   name: "auth"

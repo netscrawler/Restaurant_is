@@ -8,8 +8,8 @@ type Dish struct {
 	Price uint64
 }
 
-func NewDish(id []byte, name string, Price uint64) (*Dish, error) {
-	uuid, err := uuid.ParseBytes(id)
+func NewDish(id string, name string, Price uint64) (*Dish, error) {
+	uuid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err
 	}

@@ -71,7 +71,7 @@ func (s *serverAPI) UpdateDish(
 	ctx context.Context,
 	in *menuv1.UpdateDishRequest,
 ) (*menuv1.DishResponse, error) {
-	dishID, err := uuid.ParseBytes(in.GetId().GetValue())
+	dishID, err := uuid.Parse(in.GetId().GetValue())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, domain.ErrInvalidUUID.Error())
 	}
@@ -106,7 +106,7 @@ func (s *serverAPI) GetDish(
 	ctx context.Context,
 	in *menuv1.GetDishRequest,
 ) (*menuv1.DishResponse, error) {
-	dishID, err := uuid.ParseBytes(in.GetDishId().GetValue())
+	dishID, err := uuid.Parse(in.GetDishId().GetValue())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, domain.ErrInvalidUUID.Error())
 	}

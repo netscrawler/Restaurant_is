@@ -85,7 +85,7 @@ type Dish struct {
 
 func (d *Dish) ToGRPCDto() *menuv1.Dish {
 	return &menuv1.Dish{
-		Id:             &menuv1.UUID{Value: d.ID[:]},
+		Id:             &menuv1.UUID{Value: d.ID.String()},
 		Name:           d.Name,
 		Description:    d.Name,
 		Price:          d.Price,

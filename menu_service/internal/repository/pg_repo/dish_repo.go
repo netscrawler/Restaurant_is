@@ -127,8 +127,7 @@ func (d *dishPgRepo) GetByFilter(
 		"updated_at",
 	).
 		From(dishTable).
-		Where(squirrel.Eq{"is_available": true}).
-		Limit(uint64(filter.PageSize))
+		Where(squirrel.Eq{"is_available": filter.OnlyAvailable})
 
 	if filter.CategoryID != nil {
 		query = query.Where(squirrel.Eq{"category_id": *filter.CategoryID})
@@ -139,6 +138,7 @@ func (d *dishPgRepo) GetByFilter(
 	}
 
 	offset := (filter.Page - 1) * filter.PageSize
+	query = query.Limit(uint64(filter.PageSize))
 	query = query.Offset(uint64(offset))
 
 	sql, args, err := query.ToSql()

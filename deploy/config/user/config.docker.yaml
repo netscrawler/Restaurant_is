@@ -1,0 +1,16 @@
+env: "dev"
+
+db:
+  type: "postgres"
+  port: 5439
+  host: "user_db"
+  user: "postgres"
+  password: "postgres"
+  name: "user"
+  sslMode: "disable"
+  poolMaxConn: 20
+  poolMaxConnLifetime: "2h"
+
+grpcServer:
+  address: "localhost"
+  port: 50045

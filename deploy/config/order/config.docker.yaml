@@ -1,0 +1,28 @@
+env: local
+db:
+  type: "postgres"
+  port: 5435
+  host: "order_db"
+  user: "postgres"
+  password: "postgres"
+  name: "order"
+  sslMode: "disable"
+  poolMaxConn: 20
+  poolMaxConnLifetime: "2h"
+grpcServer:
+  address: "localhost"
+  port: 50051
+kafka:
+  brokers:
+    - kafka:9092
+  topic: events
+  retryMax: 5
+  returnSuccesses: true
+processTimeout: 30s
+
+menuClient:
+  address: "menu_service:50052"
+  baseDelay: 10s
+  multiplier: 1.5
+  maxDelay: 5s
+  minConnectTimeout: 5s

@@ -10,11 +10,12 @@ import (
 )
 
 type Config struct {
-	Env           string        `yaml:"env"`
-	Bot           Bot           `yaml:"bot"`
-	GRRPC         GRPC          `yaml:"grpc"`
-	Shutdown      time.Duration `yaml:"shutdown"       env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
-	StubRecipient int64         `yaml:"stub_recipient"`
+	Env           string          `yaml:"env"`
+	Bot           Bot             `yaml:"bot"`
+	GRRPC         GRPC            `yaml:"grpc"`
+	Shutdown      time.Duration   `yaml:"shutdown"       env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
+	StubRecipient int64           `yaml:"stub_recipient"`
+	Telemetry     TelemertyConfig `yaml:"telemetry"`
 }
 type Bot struct {
 	TelegramToken string        `yaml:"telegram_token" env:"TELEGRAM_TOKEN"`
@@ -23,6 +24,14 @@ type Bot struct {
 
 type GRPC struct {
 	Port int `yaml:"port" env:"port"`
+}
+
+type TelemertyConfig struct {
+	ServiceName    string `yaml:"serviceName"    env:"SERVICE_NAME"`
+	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
+	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
+	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 // Load загружает конфигурацию из файла или из переменных окружения

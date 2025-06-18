@@ -12,6 +12,7 @@ import (
 	"user_service/internal/domain/service"
 	pgrepo "user_service/internal/infra/out/postgres"
 	"user_service/internal/storage/postgres"
+	"user_service/internal/telemetry"
 )
 
 type App struct {
@@ -26,6 +27,12 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	ctx := context.Background()
 
 	db := postgres.MustSetup(ctx, cfg.DB.GetURL(), log)
+
+	// Инициализация telemetry
+	telemetryInstance, err := telemetry.New(&cfg.Telemetry, log)
+	if err != nil {
+		panic("failed to initialize telemetry: " + err.Error())
+	}
 
 	// Инициализация репозиториев
 	userRepo := pgrepo.NewUserRepository(db)
@@ -43,7 +50,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	staffAppService := application.NewStaffAppService(staffService)
 	roleAppService := application.NewRoleAppService(roleService)
 
-	grpc := grpcapp.New(log, userAppService, staffAppService, roleAppService, cfg.GRPCServer.Port)
+	grpc := grpcapp.New(log, userAppService, staffAppService, roleAppService, cfg.GRPCServer.Port, telemetryInstance)
 
 	health := health.New(
 		[]func() error{

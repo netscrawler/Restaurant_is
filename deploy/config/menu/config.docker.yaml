@@ -27,5 +27,5 @@ telemetry:
   serviceName: "menu-service"
   serviceVersion: "1.0.0"
   environment: "production"
-  metricsPort: 9090
-  traceEndpoint: "otel-collector:4317"
+  metricsPort: 9093
+  traceEndpoint: "jaeger:4317"

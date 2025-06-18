@@ -7,6 +7,8 @@ import (
 	service "user_service/internal/domain/app"
 
 	userv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/user"
+	otel "go.opentelemetry.io/otel"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -31,11 +33,24 @@ func newServerAPI(
 	}
 }
 
+// getTraceIDFromContext возвращает traceID из контекста, если есть
+func getTraceIDFromContext(ctx context.Context) string {
+	spanCtx := oteltrace.SpanContextFromContext(ctx)
+	if spanCtx.IsValid() {
+		return spanCtx.TraceID().String()
+	}
+	return ""
+}
+
 // Пользователи (клиенты)
 func (s *serverAPI) CreateUser(
 	ctx context.Context,
 	r *userv1.CreateUserRequest,
 ) (*userv1.UserResponse, error) {
+	// Всегда стартуем span для трейсинга
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "CreateUser")
+	defer span.End()
+
 	req := &service.CreateUserRequest{
 		Email:    r.GetEmail(),
 		Phone:    r.GetPhone(),
@@ -66,6 +81,9 @@ func (s *serverAPI) GetUser(
 	ctx context.Context,
 	r *userv1.GetUserRequest,
 ) (*userv1.UserResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "GetUser")
+	defer span.End()
+
 	var req *service.GetUserRequest
 
 	switch identifier := r.GetIdentifier().(type) {
@@ -108,6 +126,9 @@ func (s *serverAPI) UpdateUser(
 	ctx context.Context,
 	r *userv1.UpdateUserRequest,
 ) (*userv1.UserResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "UpdateUser")
+	defer span.End()
+
 	req := &service.UpdateUserRequest{
 		ID: r.GetId(),
 	}
@@ -152,6 +173,9 @@ func (s *serverAPI) DeleteUser(
 	ctx context.Context,
 	r *userv1.DeleteUserRequest,
 ) (*emptypb.Empty, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "DeleteUser")
+	defer span.End()
+
 	req := &service.DeleteUserRequest{
 		ID: r.GetId(),
 	}
@@ -168,6 +192,9 @@ func (s *serverAPI) ListUsers(
 	ctx context.Context,
 	r *userv1.ListUsersRequest,
 ) (*userv1.ListUsersResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "ListUsers")
+	defer span.End()
+
 	req := &service.ListUsersRequest{
 		OnlyActive: r.GetOnlyActive(),
 		Page:       r.GetPage(),
@@ -204,6 +231,9 @@ func (s *serverAPI) CreateStaff(
 	ctx context.Context,
 	r *userv1.CreateStaffRequest,
 ) (*userv1.StaffResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "CreateStaff")
+	defer span.End()
+
 	req := &service.CreateStaffRequest{
 		WorkEmail: r.GetWorkEmail(),
 		WorkPhone: r.GetWorkPhone(),
@@ -235,6 +265,9 @@ func (s *serverAPI) UpdateStaff(
 	ctx context.Context,
 	r *userv1.UpdateStaffRequest,
 ) (*userv1.StaffResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "UpdateStaff")
+	defer span.End()
+
 	req := &service.UpdateStaffRequest{
 		ID: r.GetId(),
 	}
@@ -275,6 +308,9 @@ func (s *serverAPI) ListStaff(
 	ctx context.Context,
 	r *userv1.ListStaffRequest,
 ) (*userv1.ListStaffResponse, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "ListStaff")
+	defer span.End()
+
 	req := &service.ListStaffRequest{
 		OnlyActive: r.GetOnlyActive(),
 		Page:       r.GetPage(),
@@ -311,6 +347,9 @@ func (s *serverAPI) AssignRole(
 	ctx context.Context,
 	r *userv1.AssignRoleRequest,
 ) (*emptypb.Empty, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "AssignRole")
+	defer span.End()
+
 	// Преобразуем int64 в string для UUID
 	userID := fmt.Sprintf("%016x-0000-0000-0000-000000000000", r.GetUserId())
 
@@ -331,6 +370,9 @@ func (s *serverAPI) RevokeRole(
 	ctx context.Context,
 	r *userv1.RevokeRoleRequest,
 ) (*emptypb.Empty, error) {
+	ctx, span := otel.GetTracerProvider().Tracer("user_service").Start(ctx, "RevokeRole")
+	defer span.End()
+
 	// Преобразуем int64 в string для UUID
 	userID := fmt.Sprintf("%016x-0000-0000-0000-000000000000", r.GetUserId())
 

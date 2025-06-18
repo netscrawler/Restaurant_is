@@ -11,12 +11,13 @@ import (
 )
 
 type Config struct {
-	Env            string         `yaml:"env"            env:"ENV"`
-	DB             DatabaseConfig `yaml:"db"             env:"DATABASE_CONFIG"`
-	GRPCServer     GRPC           `yaml:"grpcServer"     env:"GRPC_SERVER_CONFIG"`
-	Kafka          Kafka          `yaml:"kafka"          env:"KAFKA_CONFIG"`
-	ProcessTimeout time.Duration  `yaml:"processTimeout" env:"PROCESS_TIMEOUT"`
-	MenuClient     MenuClient     `yaml:"menuClient"     env:"MENU_CLIENT"`
+	Env            string          `yaml:"env"            env:"ENV"`
+	DB             DatabaseConfig  `yaml:"db"             env:"DATABASE_CONFIG"`
+	GRPCServer     GRPC            `yaml:"grpcServer"     env:"GRPC_SERVER_CONFIG"`
+	Kafka          Kafka           `yaml:"kafka"          env:"KAFKA_CONFIG"`
+	ProcessTimeout time.Duration   `yaml:"processTimeout" env:"PROCESS_TIMEOUT"`
+	MenuClient     MenuClient      `yaml:"menuClient"     env:"MENU_CLIENT"`
+	Telemetry      TelemertyConfig `yaml:"telemetry"`
 }
 
 type MenuClient struct {
@@ -49,6 +50,13 @@ type Kafka struct {
 	Topic           string   `yaml:"topic"           env:"KAFKA_TOPIC"            env-default:"events"`
 	RetryMax        int      `yaml:"retryMax"        env:"KAFKA_RETRY_MAX"        env-default:"5"`
 	ReturnSuccesses bool     `yaml:"returnSuccesses" env:"KAFKA_RETURN_SUCCESSES" env-default:"true"`
+}
+type TelemertyConfig struct {
+	ServiceName    string `yaml:"serviceName"    env:"SERVICE_NAME"`
+	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
+	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
+	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 func MustLoad() *Config {

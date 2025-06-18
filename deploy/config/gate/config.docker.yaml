@@ -21,3 +21,10 @@ services:
   notify:
     host: "notify"
     port: 54822
+
+  telemetry:
+  serviceName: "gate"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 9092
+  traceEndpoint: "jaeger:4317"

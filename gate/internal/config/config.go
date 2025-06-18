@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig   `env:"SERVER"`
-	Services ServicesConfig `env:"SERVICES"`
-	Auth     AuthConfig     `env:"AUTH"`
+	Server    ServerConfig    `env:"SERVER"`
+	Services  ServicesConfig  `env:"SERVICES"`
+	Auth      AuthConfig      `env:"AUTH"`
+	Telemetry TelemertyConfig `               yaml:"telemetry"`
 }
 
 type ServerConfig struct {
@@ -34,6 +35,14 @@ type ServiceConfig struct {
 
 type AuthConfig struct {
 	JWTSecret string `env:"JWT_SECRET" env-default:"your-secret-key"`
+}
+
+type TelemertyConfig struct {
+	ServiceName    string `yaml:"serviceName"    env:"SERVICE_NAME"`
+	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
+	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
+	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 func MustLoad() *Config {

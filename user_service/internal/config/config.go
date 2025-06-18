@@ -11,9 +11,10 @@ import (
 )
 
 type Config struct {
-	Env        string         `yaml:"env"        env:"ENV"                env-default:"local"`
-	DB         DatabaseConfig `yaml:"db"         env:"DATABASE_CONFIG"`
-	GRPCServer gRPC           `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
+	Env        string          `yaml:"env"        env:"ENV"                env-default:"local"`
+	DB         DatabaseConfig  `yaml:"db"         env:"DATABASE_CONFIG"`
+	GRPCServer gRPC            `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
+	Telemetry  TelemertyConfig `yaml:"telemetry"`
 }
 
 type DatabaseConfig struct {
@@ -31,6 +32,14 @@ type DatabaseConfig struct {
 type gRPC struct {
 	Address string `yaml:"address" env:"address" env-default:"address"`
 	Port    int    `yaml:"port"    env:"port"`
+}
+
+type TelemertyConfig struct {
+	ServiceName    string `yaml:"serviceName"    env:"SERVICE_NAME"`
+	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
+	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
+	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 func MustLoad() *Config {

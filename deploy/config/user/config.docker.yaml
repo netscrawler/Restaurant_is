@@ -14,3 +14,10 @@ db:
 grpcServer:
   address: "localhost"
   port: 50045
+
+telemetry:
+  serviceName: "user-service"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 9095
+  traceEndpoint: "jaeger:4317"

@@ -1,4 +1,4 @@
-env: "local"
+env: "prod"
 codeLife: "10m"
 
 notifyClient:
@@ -36,3 +36,10 @@ jwtRAW:
   accessTtl: 15m
   refreshTtl: 168h # 7 дней
   issuer: "auth.service.local"
+
+  telemetry:
+  serviceName: "auth-service"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 9091
+  traceEndpoint: "jaeger:4317"

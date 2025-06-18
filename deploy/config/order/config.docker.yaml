@@ -26,3 +26,10 @@ menuClient:
   multiplier: 1.5
   maxDelay: 5s
   minConnectTimeout: 5s
+
+telemetry:
+  serviceName: "order-service"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 9094
+  traceEndpoint: "jaeger:4317"

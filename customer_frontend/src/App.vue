@@ -4,15 +4,18 @@ import { useAuthStore } from './stores/auth';
 import { useCartStore } from './stores/cart';
 import LoginForm from './components/LoginForm.vue';
 import CartModal from './components/CartModal.vue';
+import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
 const cartStore = useCartStore();
 const showLogin = ref(false);
 const showCart = ref(false);
+const router = useRouter();
 
 const handleLogin = (user: any) => {
   authStore.login(user);
   showLogin.value = false;
+  router.push('/profile');
 };
 
 const logout = () => {
@@ -54,7 +57,13 @@ onMounted(() => {
               {{ cartStore.totalItems }}
             </span>
           </button>
-          
+          <router-link
+            v-if="authStore.isAuthenticated"
+            to="/profile"
+            class="bg-white text-primary-600 px-3 py-1 rounded text-sm hover:bg-gray-100 transition-colors"
+          >
+            Профиль
+          </router-link>
           <div v-if="authStore.isAuthenticated" class="flex items-center space-x-4">
             <span class="text-sm">
               Привет, {{ authStore.user?.name || authStore.user?.phone || 'Пользователь' }}!

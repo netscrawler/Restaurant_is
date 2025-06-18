@@ -22,6 +22,13 @@ type Storage interface {
 		bucketName, objectName string,
 		expiry time.Duration,
 	) (*url.URL, error)
+
+	// PresignedGetObject генерирует pre-signed URL для скачивания файла.
+	PresignedGetObject(
+		ctx context.Context,
+		bucketName, objectName string,
+		expiry time.Duration,
+	) (*url.URL, error)
 }
 
 type Image struct {
@@ -74,4 +81,36 @@ func (i *Image) CreateURL(
 	presignedURL.Scheme = "http"
 
 	return presignedURL.String(), objKey, nil
+}
+
+// GetDownloadURL generates a pre-signed URL to download an image.
+func (i *Image) GetDownloadURL(
+	ctx context.Context,
+	objectKey string,
+) (string, error) {
+	exists, err := i.storage.BucketExists(ctx, i.bucketName)
+	if err != nil {
+		return "", fmt.Errorf(
+			"%w failed to check bucket existence: %w",
+			domain.ErrInternal,
+			err,
+		)
+	}
+	if !exists {
+		return "", fmt.Errorf("%w bucket %q does not exist", domain.ErrInternal, i.bucketName)
+	}
+
+	presignedURL, err := i.storage.PresignedGetObject(ctx, i.bucketName, objectKey, i.expiry)
+	if err != nil {
+		return "", fmt.Errorf(
+			"%w failed to generate presigned GET URL: %w",
+			domain.ErrInternal,
+			err,
+		)
+	}
+
+	presignedURL.Host = "localhost:9000"
+	presignedURL.Scheme = "http"
+
+	return presignedURL.String(), nil
 }

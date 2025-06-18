@@ -15,22 +15,40 @@ type DishRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type Dish struct {
-	repo DishRepository
+type ImageURLProvider interface {
+	// GetDownloadURL генерирует pre-signed URL для скачивания изображения.
+	GetDownloadURL(ctx context.Context, objectKey string) (string, error)
 }
 
-func NewDishService(repo DishRepository) *Dish {
+type Dish struct {
+	repo          DishRepository
+	imageProvider ImageURLProvider
+}
+
+func NewDishService(repo DishRepository, imageProvider ImageURLProvider) *Dish {
 	return &Dish{
-		repo: repo,
+		repo:          repo,
+		imageProvider: imageProvider,
 	}
 }
 
 // Create and save new dish.
 func (d *Dish) Create(ctx context.Context, dish *dto.Dish) (*dto.Dish, error) {
+	// Если есть objectKey в ImageURL, генерируем URL для скачивания
+	var downloadURL string
+	if dish.ImageURL != "" {
+		var err error
+		downloadURL, err = d.imageProvider.GetDownloadURL(ctx, dish.ImageURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	err := d.repo.Create(ctx, dish)
 	if err != nil {
 		return nil, err
 	}
+	dish.ImageURL = downloadURL
 
 	return dish, nil
 }
@@ -41,6 +59,15 @@ func (d *Dish) Get(ctx context.Context, dishID uuid.UUID) (*dto.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if dish.ImageURL != "" {
+		downloadURL, err := d.imageProvider.GetDownloadURL(ctx, dish.ImageURL)
+		if err != nil {
+			return nil, err
+		}
+		dish.ImageURL = downloadURL
+	}
+
 	return dish, nil
 }
 
@@ -79,6 +106,13 @@ func (d *Dish) Update(ctx context.Context, req *dto.UpdateDishReq) (*dto.Dish, e
 	if err != nil {
 		return nil, err
 	}
+	if existingDish.ImageURL != "" {
+		downloadURL, err := d.imageProvider.GetDownloadURL(ctx, existingDish.ImageURL)
+		if err != nil {
+			return nil, err
+		}
+		existingDish.ImageURL = downloadURL
+	}
 
 	return existingDish, nil
 }
@@ -89,5 +123,18 @@ func (d *Dish) List(ctx context.Context, filter *dto.ListDishFilter) ([]dto.Dish
 		return nil, err
 	}
 
-	return dishes, nil
+	var editedDishes []dto.Dish
+
+	for _, dish := range dishes {
+		if dish.ImageURL != "" {
+			downloadURL, err := d.imageProvider.GetDownloadURL(ctx, dish.ImageURL)
+			if err != nil {
+				return nil, err
+			}
+			dish.ImageURL = downloadURL
+		}
+		editedDishes = append(editedDishes, dish)
+	}
+
+	return editedDishes, nil
 }

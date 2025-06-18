@@ -22,6 +22,6 @@ COPY --from=builder /app/menu .
 # Если нужны сертификаты (например, mTLS, HTTPS)
 # COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-EXPOSE 54823
+EXPOSE 50052
 
 CMD ["./menu"]

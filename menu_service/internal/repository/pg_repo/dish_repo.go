@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/netscrawler/Restaurant_is/menu_service/internal/domain"
+	"github.com/netscrawler/Restaurant_is/menu_service/internal/infra/out/postgres"
 	"github.com/netscrawler/Restaurant_is/menu_service/internal/models/dto"
-	"github.com/netscrawler/Restaurant_is/menu_service/internal/storage/postgres"
 )
 
 type dishPgRepo struct {

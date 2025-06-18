@@ -100,7 +100,7 @@ services:
     image: ghcr.io/netscrawler/restaurant_is-gate:latest
     container_name: gate
     ports:
-      - "8090:8090"
+      - "8080:8080"
     environment:
       - CONFIG_PATH=/gate/config/config.docker.yaml
     volumes:
@@ -330,6 +330,7 @@ services:
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_METRICS_ENABLED=true
     depends_on:
       - loki
     networks:
@@ -371,6 +372,7 @@ services:
       MB_DB_USER: metabase
       MB_DB_PASS: metabase123
       MB_DB_HOST: metabase-db
+      MB_METRICS_ENABLED: true
     depends_on:
       - metabase-db
     networks:
@@ -382,7 +384,62 @@ services:
         max-file: "3"
     restart: unless-stopped
 
+    otel-collector:
+      image: otel/opentelemetry-collector:latest
+      command: ["--config=/etc/otel-collector-config.yaml"]
+      volumes:
+        - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      ports:
+        - "4317:4317" # OTLP gRPC
+        - "4318:4318" # OTLP HTTP
+        - "8888:8888" # Prometheus metrics
+      logging:
+        driver: json-file
+        options:
+          max-size: "10m"
+          max-file: "3"
+      networks:
+        - risp
+
+  # Prometheus - для метрик
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - risp
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    container_name: jaeger
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250" # OTLP gRPC receiver
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
+  prometheus_data:
   auth-postgres-data:
   menu-postgres-data:
   order-postgres-data:

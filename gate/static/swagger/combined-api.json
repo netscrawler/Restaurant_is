@@ -1,1 +1,1537 @@
- 
+{
+    "swagger": "2.0",
+    "info": {
+      "title": "Restaurant API Gateway - Combined API",
+      "description": "Объединенный API для ресторанной системы. Включает в себя все сервисы: Auth, User, Menu, Order, Notify",
+      "version": "1.0.0",
+      "contact": {
+        "name": "API Support",
+        "url": "http://www.swagger.io/support",
+        "email": "support@swagger.io"
+      },
+      "license": {
+        "name": "Apache 2.0",
+        "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+      }
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "schemes": ["http", "https"],
+    "consumes": ["application/json"],
+    "produces": ["application/json"],
+    "securityDefinitions": {
+      "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Введите \"Bearer\" за которым следует пробел и JWT токен."
+      }
+    },
+    "tags": [
+      {
+        "name": "Auth",
+        "description": "Операции аутентификации и авторизации"
+      },
+      {
+        "name": "User",
+        "description": "Управление пользователями и профилями"
+      },
+      {
+        "name": "Menu",
+        "description": "Управление меню и блюдами"
+      },
+      {
+        "name": "Order",
+        "description": "Управление заказами"
+      },
+      {
+        "name": "Admin",
+        "description": "Административные операции (требуют роль admin)"
+      },
+      {
+        "name": "Health",
+        "description": "Проверка состояния сервиса"
+      }
+    ],
+    "paths": {
+      "/health": {
+        "get": {
+          "tags": ["Health"],
+          "summary": "Health check",
+          "description": "Проверка состояния сервиса",
+          "operationId": "healthCheck",
+          "responses": {
+            "200": {
+              "description": "Сервис работает",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "ok"
+                  },
+                  "service": {
+                    "type": "string",
+                    "example": "gate"
+                  },
+                  "version": {
+                    "type": "string",
+                    "example": "1.0.0"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/client/login/init": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Инициализация входа клиента",
+          "description": "Отправляет код подтверждения на телефон клиента",
+          "operationId": "LoginClientInit",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phone": {
+                      "type": "string",
+                      "description": "Номер телефона клиента"
+                    }
+                  },
+                  "required": ["phone"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешная инициализация",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string"
+                      },
+                      "error": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/client/login/confirm": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Подтверждение входа клиента",
+          "description": "Подтверждает вход клиента с помощью кода",
+          "operationId": "LoginClientConfirm",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "phone": {
+                      "type": "string",
+                      "description": "Номер телефона клиента"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Код подтверждения"
+                    }
+                  },
+                  "required": ["phone", "code"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешный вход",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "access_token": {
+                        "type": "string"
+                      },
+                      "expires_in": {
+                        "type": "integer"
+                      },
+                      "refresh_token": {
+                        "type": "string"
+                      },
+                      "refresh_token_expires_in": {
+                        "type": "integer"
+                      },
+                      "user": {
+                        "$ref": "#/definitions/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/staff/login": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Вход сотрудника",
+          "description": "Вход сотрудника с помощью email и пароля",
+          "operationId": "LoginStaff",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "staff": {
+                      "$ref": "#/definitions/Staff"
+                    },
+                    "password": {
+                      "type": "string",
+                      "description": "Пароль сотрудника"
+                    }
+                  },
+                  "required": ["staff", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешный вход",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "access_token": {
+                        "type": "string"
+                      },
+                      "expires_in": {
+                        "type": "integer"
+                      },
+                      "refresh_token": {
+                        "type": "string"
+                      },
+                      "refresh_token_expires_in": {
+                        "type": "integer"
+                      },
+                      "user": {
+                        "$ref": "#/definitions/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/staff/register": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Регистрация сотрудника",
+          "description": "Регистрирует нового сотрудника",
+          "operationId": "RegisterStaff",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "staff": {
+                      "$ref": "#/definitions/Staff"
+                    }
+                  },
+                  "required": ["staff"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешная регистрация",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "staff": {
+                        "$ref": "#/definitions/Staff"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/yandex/login": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Вход через Яндекс",
+          "description": "Вход через OAuth Яндекс",
+          "operationId": "LoginYandex",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Код авторизации от Яндекс"
+                    },
+                    "redirect_uri": {
+                      "type": "string",
+                      "description": "URI перенаправления"
+                    }
+                  },
+                  "required": ["code", "redirect_uri"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешный вход",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "access_token": {
+                        "type": "string"
+                      },
+                      "expires_in": {
+                        "type": "integer"
+                      },
+                      "refresh_token": {
+                        "type": "string"
+                      },
+                      "refresh_token_expires_in": {
+                        "type": "integer"
+                      },
+                      "user": {
+                        "$ref": "#/definitions/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/refresh": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Обновление токена",
+          "description": "Обновляет access token с помощью refresh token",
+          "operationId": "Refresh",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "refresh_token": {
+                      "type": "string",
+                      "description": "Refresh token"
+                    }
+                  },
+                  "required": ["refresh_token"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Успешное обновление",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "access_token": {
+                        "type": "string"
+                      },
+                      "expires_in": {
+                        "type": "integer"
+                      },
+                      "refresh_token": {
+                        "type": "string"
+                      },
+                      "refresh_token_expires_in": {
+                        "type": "integer"
+                      },
+                      "user": {
+                        "$ref": "#/definitions/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/auth/validate": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Валидация токена",
+          "description": "Проверяет валидность токена и возвращает информацию о пользователе",
+          "operationId": "Validate",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT токен для валидации"
+                    }
+                  },
+                  "required": ["token"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Токен валиден",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "valid": {
+                        "type": "boolean"
+                      },
+                      "user": {
+                        "$ref": "#/definitions/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/menu/dishes": {
+        "get": {
+          "tags": ["Menu"],
+          "summary": "Получить список блюд",
+          "description": "Возвращает список блюд с возможностью фильтрации",
+          "operationId": "ListDishes",
+          "parameters": [
+            {
+              "name": "category_id",
+              "in": "query",
+              "description": "ID категории для фильтрации",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "name": "only_available",
+              "in": "query",
+              "description": "Только доступные блюда",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Номер страницы",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "name": "page_size",
+              "in": "query",
+              "description": "Размер страницы",
+              "required": false,
+              "type": "integer"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Список блюд",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "dishes": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Dish"
+                        }
+                      },
+                      "total": {
+                        "type": "integer"
+                      },
+                      "page": {
+                        "type": "integer"
+                      },
+                      "page_size": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/menu/dishes/{id}": {
+        "get": {
+          "tags": ["Menu"],
+          "summary": "Получить блюдо по ID",
+          "description": "Возвращает информацию о конкретном блюде",
+          "operationId": "GetDish",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID блюда",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Информация о блюде",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Dish"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/profile": {
+        "get": {
+          "tags": ["User"],
+          "summary": "Получить профиль пользователя",
+          "description": "Возвращает профиль текущего пользователя",
+          "operationId": "GetProfile",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Профиль пользователя",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "put": {
+          "tags": ["User"],
+          "summary": "Обновить профиль пользователя",
+          "description": "Обновляет профиль текущего пользователя",
+          "operationId": "UpdateProfile",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Обновленный профиль",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/orders": {
+        "get": {
+          "tags": ["Order"],
+          "summary": "Получить список заказов",
+          "description": "Возвращает список заказов пользователя",
+          "operationId": "ListOrders",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "status",
+              "in": "query",
+              "description": "Статус заказа для фильтрации",
+              "required": false,
+              "type": "string",
+              "enum": [
+                "ORDER_STATUS_CREATED",
+                "ORDER_STATUS_CONFIRMED",
+                "ORDER_STATUS_COOKING",
+                "ORDER_STATUS_READY",
+                "ORDER_STATUS_DELIVERED",
+                "ORDER_STATUS_CANCELLED"
+              ]
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Номер страницы",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "name": "page_size",
+              "in": "query",
+              "description": "Размер страницы",
+              "required": false,
+              "type": "integer"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Список заказов",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "orders": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Order"
+                        }
+                      },
+                      "total": {
+                        "type": "integer"
+                      },
+                      "page": {
+                        "type": "integer"
+                      },
+                      "page_size": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "tags": ["Order"],
+          "summary": "Создать заказ",
+          "description": "Создает новый заказ",
+          "operationId": "CreateOrder",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "dish_id": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "delivery_address": {
+                      "type": "string"
+                    },
+                    "comment": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["items"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Созданный заказ",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Order"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/orders/{id}": {
+        "get": {
+          "tags": ["Order"],
+          "summary": "Получить заказ по ID",
+          "description": "Возвращает информацию о конкретном заказе",
+          "operationId": "GetOrder",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID заказа",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Информация о заказе",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Order"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/users": {
+        "get": {
+          "tags": ["Admin"],
+          "summary": "Получить список всех пользователей",
+          "description": "Возвращает список всех пользователей (требует роль admin)",
+          "operationId": "ListUsers",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "only_active",
+              "in": "query",
+              "description": "Только активные пользователи",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Номер страницы",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "name": "page_size",
+              "in": "query",
+              "description": "Размер страницы",
+              "required": false,
+              "type": "integer"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Список пользователей",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "users": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/User"
+                        }
+                      },
+                      "total": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Создать пользователя",
+          "description": "Создает нового пользователя (требует роль admin)",
+          "operationId": "CreateUser",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Созданный пользователь",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/users/{id}": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Обновить пользователя",
+          "description": "Обновляет информацию о пользователе (требует роль admin)",
+          "operationId": "UpdateUser",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID пользователя",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Обновленный пользователь",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "delete": {
+          "tags": ["Admin"],
+          "summary": "Удалить пользователя",
+          "description": "Удаляет пользователя (требует роль admin)",
+          "operationId": "DeleteUser",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID пользователя",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Пользователь удален"
+            }
+          }
+        }
+      },
+      "/admin/staff": {
+        "get": {
+          "tags": ["Admin"],
+          "summary": "Получить список сотрудников",
+          "description": "Возвращает список всех сотрудников (требует роль admin)",
+          "operationId": "ListStaff",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "only_active",
+              "in": "query",
+              "description": "Только активные сотрудники",
+              "required": false,
+              "type": "boolean"
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Номер страницы",
+              "required": false,
+              "type": "integer"
+            },
+            {
+              "name": "page_size",
+              "in": "query",
+              "description": "Размер страницы",
+              "required": false,
+              "type": "integer"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Список сотрудников",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "staff": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Staff"
+                        }
+                      },
+                      "total": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/staff/{id}": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Обновить сотрудника",
+          "description": "Обновляет информацию о сотруднике (требует роль admin)",
+          "operationId": "UpdateStaff",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID сотрудника",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "work_email": {
+                      "type": "string"
+                    },
+                    "position": {
+                      "type": "string"
+                    },
+                    "password": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Обновленный сотрудник",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Staff"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/staff/{id}/roles": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Назначить роль сотруднику",
+          "description": "Назначает роль сотруднику (требует роль admin)",
+          "operationId": "AssignRole",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID сотрудника",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["role"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Роль назначена"
+            }
+          }
+        },
+        "delete": {
+          "tags": ["Admin"],
+          "summary": "Отозвать роль у сотрудника",
+          "description": "Отзывает роль у сотрудника (требует роль admin)",
+          "operationId": "RevokeRole",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID сотрудника",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "role": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["role"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Роль отозвана"
+            }
+          }
+        }
+      },
+      "/admin/menu/dishes": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Создать блюдо",
+          "description": "Создает новое блюдо (требует роль admin)",
+          "operationId": "CreateDish",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "number"
+                    },
+                    "category_id": {
+                      "type": "integer"
+                    },
+                    "image_url": {
+                      "type": "string"
+                    },
+                    "available": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": ["name", "price"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Созданное блюдо",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Dish"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/menu/dishes/{id}": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Обновить блюдо",
+          "description": "Обновляет информацию о блюде (требует роль admin)",
+          "operationId": "UpdateDish",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID блюда",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "number"
+                    },
+                    "category_id": {
+                      "type": "integer"
+                    },
+                    "image_url": {
+                      "type": "string"
+                    },
+                    "available": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Обновленное блюдо",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/definitions/Dish"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "delete": {
+          "tags": ["Admin"],
+          "summary": "Удалить блюдо",
+          "description": "Удаляет блюдо (требует роль admin)",
+          "operationId": "DeleteDish",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID блюда",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Блюдо удалено"
+            }
+          }
+        }
+      },
+      "/admin/orders/{id}/status": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Обновить статус заказа",
+          "description": "Обновляет статус заказа (требует роль admin)",
+          "operationId": "UpdateOrderStatus",
+          "security": [
+            {
+              "BearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "ID заказа",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ORDER_STATUS_CREATED",
+                        "ORDER_STATUS_CONFIRMED",
+                        "ORDER_STATUS_COOKING",
+                        "ORDER_STATUS_READY",
+                        "ORDER_STATUS_DELIVERED",
+                        "ORDER_STATUS_CANCELLED"
+                      ]
+                    }
+                  },
+                  "required": ["status"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Статус обновлен"
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Staff": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "work_email": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Dish": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "category_id": {
+            "type": "integer"
+          },
+          "category_name": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dish_id": {
+                  "type": "string"
+                },
+                "dish_name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer"
+                },
+                "price": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "total_amount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ORDER_STATUS_CREATED",
+              "ORDER_STATUS_CONFIRMED",
+              "ORDER_STATUS_COOKING",
+              "ORDER_STATUS_READY",
+              "ORDER_STATUS_DELIVERED",
+              "ORDER_STATUS_CANCELLED"
+            ]
+          },
+          "delivery_address": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }

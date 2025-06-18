@@ -83,6 +83,14 @@ func main() {
 	// Отдача swagger статических файлов
 	r.Static("/swagger-static", "./static/swagger")
 
+	r.GET(
+		"/swagger/combined/*any",
+		ginSwagger.WrapHandler(
+			swaggerFiles.Handler,
+			ginSwagger.URL("http://localhost:8080/swagger-static/combined-api.json"),
+		),
+	)
+
 	// Swagger UI для каждого сервиса
 	r.GET(
 		"/swagger/auth/*any",

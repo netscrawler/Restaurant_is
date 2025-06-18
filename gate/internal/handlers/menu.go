@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	menuv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/menu"
@@ -19,6 +20,28 @@ func NewMenuHandler(menuClient menuv1.MenuServiceClient) *MenuHandler {
 
 func (h *MenuHandler) ListDishes(c *gin.Context) {
 	req := &menuv1.ListDishesRequest{}
+
+	if v := c.Query("category_id"); v != "" {
+		if id, err := strconv.Atoi(v); err == nil {
+			val := int32(id)
+			req.CategoryId = &val
+		}
+	}
+	if v := c.Query("only_available"); v != "" {
+		if v == "true" || v == "1" {
+			req.OnlyAvailable = true
+		}
+	}
+	if v := c.Query("page"); v != "" {
+		if page, err := strconv.Atoi(v); err == nil {
+			req.Page = int32(page)
+		}
+	}
+	if v := c.Query("page_size"); v != "" {
+		if pageSize, err := strconv.Atoi(v); err == nil {
+			req.PageSize = int32(pageSize)
+		}
+	}
 
 	resp, err := h.menuClient.ListDishes(c.Request.Context(), req)
 	if err != nil {

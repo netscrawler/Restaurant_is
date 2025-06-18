@@ -29,6 +29,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/netscrawler/Restaurant_is/gate/internal/clients"
 	"github.com/netscrawler/Restaurant_is/gate/internal/config"
@@ -99,6 +100,9 @@ func main() {
 
 	// Инициализация gin
 	r := gin.Default()
+
+	// Включаем CORS для всех источников (разрешить всё)
+	r.Use(cors.Default())
 
 	// Включаем автоматический трейсинг HTTP-запросов через otelgin
 	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))

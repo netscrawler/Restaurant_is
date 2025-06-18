@@ -1,0 +1,11 @@
+env: "local"
+
+bot:
+  telegram_token: "7608054545:AAFggD1QhPETt8Z5gALqvsZxw5unaq8ySk4"
+  bot_poll: 30s
+
+grpc:
+  port: 54822
+
+shutdown: 5s
+stub_recipient: -1002513792792

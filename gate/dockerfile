@@ -1,0 +1,24 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 go build \
+    -trimpath \
+    -ldflags="-s -w -buildid= -extldflags=-static" \
+    -buildvcs=false \
+    -o gate ./cmd/main.go
+
+FROM gcr.io/distroless/static-debian12
+
+WORKDIR /gate
+
+COPY --from=builder /app/gate .
+
+EXPOSE 8080
+
+CMD ["./gate"]

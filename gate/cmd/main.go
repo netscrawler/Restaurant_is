@@ -101,8 +101,14 @@ func main() {
 	// Инициализация gin
 	r := gin.Default()
 
-	// Включаем CORS для всех источников (разрешить всё)
-	r.Use(cors.Default())
+	// Кастомный CORS: разрешаем Authorization, любые методы, любые заголовки, любые origin
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	// Включаем автоматический трейсинг HTTP-запросов через otelgin
 	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))

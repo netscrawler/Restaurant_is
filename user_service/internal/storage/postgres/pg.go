@@ -4,14 +4,12 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Storage struct {
-	log     *slog.Logger
-	DB      *pgxpool.Pool
-	Builder *squirrel.StatementBuilderType
+	log *slog.Logger
+	DB  *pgxpool.Pool
 }
 
 func MustSetup(ctx context.Context, dsn string, log *slog.Logger) *Storage {
@@ -38,12 +36,9 @@ func MustSetup(ctx context.Context, dsn string, log *slog.Logger) *Storage {
 
 	stLogger.InfoContext(ctx, "Successfyly connect to database")
 
-	builder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-
 	return &Storage{
-		log:     logger,
-		DB:      pgConn,
-		Builder: &builder,
+		log: logger,
+		DB:  pgConn,
 	}
 }
 

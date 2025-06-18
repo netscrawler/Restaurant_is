@@ -84,6 +84,54 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  user_service:
+    build:
+      context: ./user_service
+      dockerfile: dockerfile
+    container_name: user_service
+    ports:
+      - "50045:50045"
+    environment:
+      - CONFIG_PATH=/user/config/config.local.yaml
+    volumes:
+      - ./user_service/config:/user/config
+    depends_on:
+      user_db:
+        condition: service_healthy
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  user_db:
+    image: postgres:latest
+    container_name: user_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user
+    ports:
+      - "5439:5439"
+    command: ["postgres", "-c", "port=5439"]
+    volumes:
+      - ./user_service/migrations/pg/init.sql:/docker-entrypoint-initdb.d:ro
+      - user-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5439"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   auth_db:
     image: postgres:latest
     container_name: auth_db
@@ -234,7 +282,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./loki/loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./deploy/config/loki/loki-config.yaml:/etc/loki/loki-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
     networks:
@@ -249,8 +297,8 @@ services:
     image: grafana/promtail:3.2.1
     container_name: promtail
     volumes:
-      - ./promtail/positions:/tmp
-      - ./promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+      - ./deploy/config/promtail/positions:/tmp
+      - ./deploy/config/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command: -config.file=/etc/promtail/promtail-config.yaml
@@ -282,13 +330,57 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  metabase-db:
+    image: postgres:15
+    container_name: metabase-db
+    environment:
+      POSTGRES_DB: metabase
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: metabase123
+    command: ["postgres", "-c", "port=5438"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    ports:
+      - "3030:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5438
+      MB_DB_USER: metabase
+      MB_DB_PASS: metabase123
+      MB_DB_HOST: metabase-db
+    depends_on:
+      - metabase-db
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
 volumes:
   auth-postgres-data:
   menu-postgres-data:
   order-postgres-data:
+  user-postgres-data:
   minio-data:
   zookeeper-data:
   loki-data:
+  pgdata:
 
 networks:
   risp:

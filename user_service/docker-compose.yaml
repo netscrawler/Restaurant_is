@@ -1,28 +1,30 @@
 services:
-  menu_service:
+  user_service:
     build: .
     container_name: user_service
     ports:
-      - "54823:54821"
+      - "50045:50045"
     environment:
-      - CONFIG_PATH=config/config.local.yaml
+      - CONFIG_PATH=/config/config.local.yaml
+    volumes:
+      - ./config:/config
     depends_on:
-      db:
+      user_db:
         condition: service_healthy
     networks:
       - default
-  db:
+  user_db:
     image: postgres:latest
-    container_name: db
+    container_name: user_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: menu
+      POSTGRES_DB: user
     ports:
       - "5432:5432"
     command: postgres
     volumes:
-      - ./migrations/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./migrations/pg/init.sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s

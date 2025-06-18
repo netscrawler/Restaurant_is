@@ -10,11 +10,9 @@ processors:
   batch:
     timeout: 1s
     send_batch_size: 1024
-
   memory_limiter:
     check_interval: 1s
     limit_mib: 1500
-
   resource:
     attributes:
       - key: service.namespace
@@ -26,31 +24,25 @@ processors:
 
 exporters:
   prometheus:
-    endpoint: "0.0.0.0:8888"
+    endpoint: "0.0.0.0:8889" # Изменено с 8888 на 8889
     namespace: "restaurant_is"
-
-  jaeger:
-    endpoint: "jaeger:14250"
-    tls:
-      insecure: true
-
-  logging:
-    loglevel: debug
+  zipkin:
+    endpoint: "http://jaeger:9411/api/v2/spans"
+    format: proto
+  debug:
+    verbosity: detailed
 
 service:
   pipelines:
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
-      exporters: [logging, prometheus]
-
+      exporters: [debug, prometheus]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
-      exporters: [logging, jaeger]
-
+      exporters: [debug, zipkin]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
-      exporters: [logging]
-
+      exporters: [debug]

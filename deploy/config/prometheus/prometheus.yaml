@@ -7,123 +7,76 @@ rule_files:
   # - "second_rules.yml"
 
 scrape_configs:
-  # Prometheus itself
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
-
-  # Auth Service
-  - job_name: 'auth_service'
+      - targets: ["localhost:9090"]
+  - job_name: "auth_service"
     static_configs:
-      - targets: ['auth_service:54821']
-    metrics_path: '/metrics'
+      - targets: ["auth_service:54821"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # Notify Service
-  - job_name: 'notify'
+  - job_name: "notify"
     static_configs:
-      - targets: ['notify:54822']
-    metrics_path: '/metrics'
+      - targets: ["notify:54822"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # Menu Service
-  - job_name: 'menu_service'
+  - job_name: "menu_service"
     static_configs:
-      - targets: ['menu_service:50052']
-    metrics_path: '/metrics'
+      - targets: ["menu_service:50052"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # Order Service
-  - job_name: 'order_service'
+  - job_name: "order_service"
     static_configs:
-      - targets: ['order_service:50051']
-    metrics_path: '/metrics'
+      - targets: ["order_service:50051"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # User Service
-  - job_name: 'user_service'
+  - job_name: "user_service"
     static_configs:
-      - targets: ['user_service:50045']
-    metrics_path: '/metrics'
+      - targets: ["user_service:50045"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # Gate Service
-  - job_name: 'gate'
+  - job_name: "gate"
     static_configs:
-      - targets: ['gate:8080']
-    metrics_path: '/metrics'
+      - targets: ["gate:8080"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # OpenTelemetry Collector
-  - job_name: 'otel-collector'
+  - job_name: "otel-collector"
     static_configs:
-      - targets: ['otel-collector:8888']
-    metrics_path: '/metrics'
+      - targets: ["otel-collector:8889"] # Изменено с 8888 на 8889
+    metrics_path: "/metrics"
     scrape_interval: 10s
-
-  # PostgreSQL databases (if they expose metrics)
-  - job_name: 'user_db'
+  - job_name: "user_db"
     static_configs:
-      - targets: ['user_db:5439']
-    metrics_path: '/metrics'
+      - targets: ["user_db:5439"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
-
-  - job_name: 'auth_db'
+  - job_name: "auth_db"
     static_configs:
-      - targets: ['auth_db:5432']
-    metrics_path: '/metrics'
+      - targets: ["auth_db:5432"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
-
-  - job_name: 'menu_db'
+  - job_name: "menu_db"
     static_configs:
-      - targets: ['menu_db:5434']
-    metrics_path: '/metrics'
+      - targets: ["menu_db:5434"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
-
-  - job_name: 'order_db'
+  - job_name: "order_db"
     static_configs:
-      - targets: ['order_db:5435']
-    metrics_path: '/metrics'
+      - targets: ["order_db:5435"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
-
-  # MinIO
-  - job_name: 'minio'
+  - job_name: "minio"
     static_configs:
-      - targets: ['minio:9000']
-    metrics_path: '/minio/v2/metrics/cluster'
+      - targets: ["minio:9000"]
+    metrics_path: "/minio/v2/metrics/cluster"
     scrape_interval: 30s
-
-  # Kafka (if JMX exporter is configured)
-  - job_name: 'kafka'
+  - job_name: "kafka"
     static_configs:
-      - targets: ['kafka:9404']
-    metrics_path: '/metrics'
+      - targets: ["kafka:9404"]
+    metrics_path: "/metrics"
     scrape_interval: 30s
-
-  # Zookeeper (if JMX exporter is configured)
-  - job_name: 'zookeeper'
+  - job_name: "zookeeper"
     static_configs:
-      - targets: ['zookeeper:9404']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Loki
-  - job_name: 'loki'
-    static_configs:
-      - targets: ['loki:3100']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Grafana
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Metabase
-  - job_name: 'metabase'
-    static_configs:
-      - targets: ['metabase:3000']
-    metrics_path: '/metrics'
+      - targets: ["zookeeper:9404"]
+    metrics_path: "/metrics"
     scrape_interval: 30s

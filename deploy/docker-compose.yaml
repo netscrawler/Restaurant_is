@@ -153,7 +153,7 @@ services:
       - "5432:5432"
     command: ["postgres", "-c", "port=5432"]
     volumes:
-      - ./migrations/auth/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./migrations/auth/pg/init.sql/:/docker-entrypoint-initdb.d:ro
       - auth-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5432"]
@@ -179,7 +179,7 @@ services:
       - "5434:5434"
     command: ["postgres", "-c", "port=5434"]
     volumes:
-      - ./migrations/menu/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./migrations/menu/pg/init.sql/:/docker-entrypoint-initdb.d:ro
       - menu-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5434"]
@@ -205,7 +205,7 @@ services:
       - "5435:5435"
     command: ["postgres", "-c", "port=5435"]
     volumes:
-      - ./migrations/order/pg/init.sql/:/docker-entrypoint-initdb.d
+      - ./migrations/order/pg/init.sql:/docker-entrypoint-initdb.d:ro
       - order-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5435"]
@@ -384,22 +384,22 @@ services:
         max-file: "3"
     restart: unless-stopped
 
-    otel-collector:
-      image: otel/opentelemetry-collector:latest
-      command: ["--config=/etc/otel-collector-config.yaml"]
-      volumes:
-        - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-      ports:
-        - "4317:4317" # OTLP gRPC
-        - "4318:4318" # OTLP HTTP
-        - "8888:8888" # Prometheus metrics
-      logging:
-        driver: json-file
-        options:
-          max-size: "10m"
-          max-file: "3"
-      networks:
-        - risp
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus metrics
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - risp
 
   # Prometheus - для метрик
   prometheus:

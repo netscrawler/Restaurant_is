@@ -1,4 +1,4 @@
-env: "local"
+env: "prod"
 
 minio:
   endpoint: "minio:9000"
@@ -22,3 +22,10 @@ db:
 grpcServer:
   address: "localhost"
   port: 50052
+
+telemetry:
+  serviceName: "menu-service"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 9090
+  traceEndpoint: "otel-collector:4317"

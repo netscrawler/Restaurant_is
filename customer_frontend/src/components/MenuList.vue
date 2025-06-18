@@ -1,6 +1,21 @@
 <template>
   <div>
     <h2 class="text-xl font-semibold mb-4">Меню ресторана</h2>
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button
+        v-for="cat in categories"
+        :key="cat.id"
+        :class="[
+          'px-4 py-2 rounded transition-colors',
+          selectedCategoryId === cat.id
+            ? 'bg-primary-500 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-primary-100'
+        ]"
+        @click="selectCategory(cat.id)"
+      >
+        {{ cat.name }}
+      </button>
+    </div>
     <div v-if="loading" class="text-center py-8 text-lg">Загрузка меню...</div>
     <div v-else-if="error" class="text-center py-8 text-red-600">{{ error }}</div>
     <div v-else>
@@ -36,36 +51,28 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useCartStore } from '../stores/cart';
-import { apiService } from '../services/api';
+import { categories } from '../types/categories';
+import { Api, Dish } from '../api-client';
 
-interface Dish {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category_id: number;
-  category_name: string;
-  image_url?: string;
-  available: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
+const api = new Api();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
 
 const dishes = ref<Dish[]>([]);
 const loading = ref(true);
 const error = ref('');
+const selectedCategoryId = ref<number | null>(categories[0]?.id ?? null);
 
 const fetchDishes = async () => {
   loading.value = true;
   error.value = '';
   try {
-    const res = await apiService.getDishes({ only_available: true });
-    dishes.value = res.dishes || [];
+    const params: any = { only_available: true };
+    if (selectedCategoryId.value) params.category_id = selectedCategoryId.value;
+    const res = await api.menu.listDishes(params);
+    dishes.value = res.data.dishes || [];
   } catch (err: any) {
-    error.value = err.response?.data?.message || 'Ошибка при загрузке меню';
+    error.value = err.message || 'Ошибка при загрузке меню';
   } finally {
     loading.value = false;
   }
@@ -77,13 +84,18 @@ const addToCart = (dish: Dish) => {
     return;
   }
   cartStore.addItem({
-    id: dish.id,
-    name: dish.name,
-    price: dish.price,
-    category: dish.category_name,
+    id: dish.id!,
+    name: dish.name!,
+    price: dish.price!,
+    category: dish.category_name!,
     image_url: dish.image_url
   });
   alert(`Добавлено в корзину: ${dish.name}`);
+};
+
+const selectCategory = (id: number) => {
+  selectedCategoryId.value = id;
+  fetchDishes();
 };
 
 onMounted(fetchDishes);

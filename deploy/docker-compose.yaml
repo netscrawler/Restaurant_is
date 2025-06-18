@@ -1,6 +1,6 @@
 services:
   auth_service:
-    image: ghcr.io/netscrawler/restaurant_is-auth_service:latest
+    image: ghcr.io/netscrawler/restaurant_is-auth:latest
     container_name: auth_service
     ports:
       - "54821:54821"
@@ -85,6 +85,26 @@ services:
       - CONFIG_PATH=/user/config/config.docker.yaml
     volumes:
       - ./config/user:/user/config
+    depends_on:
+      user_db:
+        condition: service_healthy
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  gate:
+    image: ghcr.io/netscrawler/restaurant_is-gate:latest
+    container_name: gate
+    ports:
+      - "8090:8090"
+    environment:
+      - CONFIG_PATH=/gate/config/config.docker.yaml
+    volumes:
+      - ./config/gate:/gate/config
     depends_on:
       user_db:
         condition: service_healthy

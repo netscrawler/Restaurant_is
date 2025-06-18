@@ -113,6 +113,15 @@ func main() {
 		),
 	)
 
+	// Объединенный Swagger UI
+	r.GET(
+		"/swagger/combined/*any",
+		ginSwagger.WrapHandler(
+			swaggerFiles.Handler,
+			ginSwagger.URL("http://localhost:8080/swagger-static/combined-api.json"),
+		),
+	)
+
 	// Публичные роуты (не требуют авторизации)
 	public := r.Group("/api/v1")
 	{

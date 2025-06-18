@@ -1,0 +1,404 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/menu/menu.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "MenuService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/menu/dishes": {
+      "get": {
+        "operationId": "MenuService_ListDishes",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/menuListDishesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "onlyAvailable",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "MenuService"
+        ]
+      },
+      "post": {
+        "summary": "Блюда",
+        "operationId": "MenuService_CreateDish",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/menuDishResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/menuDishRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MenuService"
+        ]
+      }
+    },
+    "/v1/menu/dishes/{dishId.value}": {
+      "get": {
+        "operationId": "MenuService_GetDish",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/menuDishResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dishId.value",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MenuService"
+        ]
+      }
+    },
+    "/v1/menu/dishes/{id.value}": {
+      "put": {
+        "operationId": "MenuService_UpdateDish",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/menuDishResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id.value",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MenuServiceUpdateDishBody"
+            }
+          }
+        ],
+        "tags": [
+          "MenuService"
+        ]
+      }
+    },
+    "/v1/menu/images/upload-url": {
+      "post": {
+        "summary": "Изображения",
+        "operationId": "MenuService_GenerateUploadURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/menuImageResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/menuImageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MenuService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "MenuServiceUpdateDishBody": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "object"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "categoryId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "cookingTimeMin": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "calories": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "menuDish": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/menuUUID"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "categoryId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "cookingTimeMin": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "calories": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "menuDishRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "categoryId": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "cookingTimeMin": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "isAvailable": {
+          "type": "boolean"
+        },
+        "calories": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "menuDishResponse": {
+      "type": "object",
+      "properties": {
+        "dish": {
+          "$ref": "#/definitions/menuDish"
+        }
+      }
+    },
+    "menuImageRequest": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "title": "\"salad.jpg\""
+        },
+        "contentType": {
+          "type": "string",
+          "title": "\"image/jpeg\""
+        }
+      }
+    },
+    "menuImageResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "Pre-signed S3 URL"
+        },
+        "objectKey": {
+          "type": "string",
+          "title": "Для сохранения в БД"
+        }
+      }
+    },
+    "menuListDishesResponse": {
+      "type": "object",
+      "properties": {
+        "dishes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/menuDish"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "menuUUID": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

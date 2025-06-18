@@ -1,0 +1,23 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+auth:
+  jwt_secret: "your-secret-key"
+
+services:
+  auth:
+    host: "auth"
+    port: 50051
+  user:
+    host: "user"
+    port: 50052
+  menu:
+    host: "menu"
+    port: 50053
+  order:
+    host: "order"
+    port: 50054
+  notify:
+    host: "localhost"
+    port: 50055

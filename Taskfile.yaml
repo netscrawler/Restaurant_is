@@ -111,3 +111,136 @@ tasks:
     dir: ./payment_service
     cmds:
       - docker-compose down || echo "нет docker-compose.yaml в payment_service"
+
+  # Команды для генерации proto файлов
+  proto-gen-all:
+    desc: "Генерация go кода для всех proto"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-all
+
+  proto-gen-auth:
+    desc: "Генерация go кода для auth"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-auth
+
+  proto-gen-notify:
+    desc: "Генерация go кода для notify"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-notify
+
+  proto-gen-menu:
+    desc: "Генерация go кода для menu"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-menu
+
+  proto-gen-order:
+    desc: "Генерация go кода для order"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-order
+
+  proto-gen-payment:
+    desc: "Генерация go кода для payment"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-payment
+
+  proto-gen-user:
+    desc: "Генерация go кода для user"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-user
+
+  proto-gen-gateway-all:
+    desc: "Генерация gRPC-Gateway для всех proto"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-all
+
+  proto-gen-gateway-auth:
+    desc: "Генерация gRPC-Gateway для auth"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-auth
+
+  proto-gen-gateway-notify:
+    desc: "Генерация gRPC-Gateway для notify"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-notify
+
+  proto-gen-gateway-menu:
+    desc: "Генерация gRPC-Gateway для menu"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-menu
+
+  proto-gen-gateway-order:
+    desc: "Генерация gRPC-Gateway для order"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-order
+
+  proto-gen-gateway-payment:
+    desc: "Генерация gRPC-Gateway для payment"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-payment
+
+  proto-gen-gateway-user:
+    desc: "Генерация gRPC-Gateway для user"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-gateway-user
+
+  proto-gen-swagger-all:
+    desc: "Генерация Swagger документации для всех proto"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-all
+
+  proto-gen-swagger-auth:
+    desc: "Генерация Swagger документации для auth"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-auth
+
+  proto-gen-swagger-notify:
+    desc: "Генерация Swagger документации для notify"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-notify
+
+  proto-gen-swagger-menu:
+    desc: "Генерация Swagger документации для menu"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-menu
+
+  proto-gen-swagger-order:
+    desc: "Генерация Swagger документации для order"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-order
+
+  proto-gen-swagger-payment:
+    desc: "Генерация Swagger документации для payment"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-payment
+
+  proto-gen-swagger-user:
+    desc: "Генерация Swagger документации для user"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-swagger-user
+
+  proto-gen-complete:
+    desc: "Полная генерация: Go, gRPC, Gateway и Swagger для всех proto"
+    dir: ./RispProtos
+    cmds:
+      - task: gen-complete

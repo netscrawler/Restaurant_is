@@ -27,8 +27,7 @@ type Notify struct {
 func (n *Notify) worker(id int) {
 	defer n.wg.Done()
 
-	log := utils.LoggerWithTrace(context.Background(), n.log)
-	log.Info("notify worker started", slog.Int("worker_id", id))
+	n.log.Info("notify worker started", slog.Int("worker_id", id))
 
 	for task := range n.tasks {
 		log := utils.LoggerWithTrace(task.ctx, n.log)
@@ -50,7 +49,7 @@ func (n *Notify) worker(id int) {
 		}
 	}
 
-	log.Info("notify worker stopped", slog.Int("worker_id", id))
+	n.log.Info("notify worker stopped", slog.Int("worker_id", id))
 }
 
 func New(log *slog.Logger, notify *notifyclient.Client) *Notify {
@@ -70,8 +69,15 @@ func New(log *slog.Logger, notify *notifyclient.Client) *Notify {
 }
 
 func (n *Notify) Send(ctx context.Context, to string, msg string) {
+	traceID, ok := ctx.Value("trace_id").(string)
+	if !ok {
+		n.log.Warn("no trace_id found in context", slog.String("phone", to))
+		traceID = "unknown"
+	}
+	tCtx := context.WithValue(context.Background(), "trace_id", traceID)
+
 	select {
-	case n.tasks <- tasks{ctx: ctx, to: to, msg: msg}:
+	case n.tasks <- tasks{ctx: tCtx, to: to, msg: msg}:
 	default:
 		n.log.Error("notify queue is full", slog.String("phone", to))
 	}

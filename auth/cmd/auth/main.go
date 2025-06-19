@@ -34,7 +34,7 @@ func main() {
 	defer telemetryInstance.Shutdown(context.Background())
 	// --- END TELEMETRY INIT ---
 
-	application := app.New(log, *cfg)
+	application := app.New(log, *cfg, telemetryInstance)
 	go func() {
 		if err := application.Run(); err != nil {
 			log.Error("failed to run application", slog.Any("error", err))

@@ -7,6 +7,7 @@ import (
 
 	grpcapp "user_service/internal/app/grpc"
 	"user_service/internal/app/health"
+	metricsapp "user_service/internal/app/metrics"
 	"user_service/internal/config"
 	application "user_service/internal/domain/app"
 	"user_service/internal/domain/service"
@@ -16,11 +17,13 @@ import (
 )
 
 type App struct {
-	cfg     *config.Config
-	log     *slog.Logger
-	db      *postgres.Storage
-	grpcApp *grpcapp.App
-	health  *health.App
+	cfg        *config.Config
+	log        *slog.Logger
+	db         *postgres.Storage
+	grpcApp    *grpcapp.App
+	health     *health.App
+	metricsApp *metricsapp.App
+	telemetry  *telemetry.Telemetry
 }
 
 func New(log *slog.Logger, cfg *config.Config) *App {
@@ -68,18 +71,24 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 		cfg.GRPCServer.Address,
 		strconv.Itoa(cfg.GRPCServer.Port+100),
 	)
+	metricsApp := metricsapp.New(log, telemetryInstance, cfg.Telemetry.MetricsPort)
 
 	return &App{
-		cfg:     cfg,
-		log:     log,
-		db:      db,
-		grpcApp: grpc,
-		health:  health,
+		cfg:        cfg,
+		log:        log,
+		db:         db,
+		grpcApp:    grpc,
+		health:     health,
+		metricsApp: metricsApp,
+		telemetry:  telemetryInstance,
 	}
 }
 
 func (a *App) MustRun() {
 	// Инициализация gRPC сервера
+	go func() {
+		a.metricsApp.MustRun()
+	}()
 	a.grpcApp.MustRun()
 }
 
@@ -93,4 +102,5 @@ func (a *App) Stop() {
 		a.db.Stop(context.Background())
 		a.log.Info("database connection closed")
 	}
+	a.metricsApp.Stop()
 }

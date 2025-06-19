@@ -9,7 +9,6 @@ import (
 
 	"github.com/netscrawler/Restaurant_is/order_service/internal/app"
 	"github.com/netscrawler/Restaurant_is/order_service/internal/config"
-	"github.com/netscrawler/Restaurant_is/order_service/internal/telemetry"
 )
 
 const (
@@ -29,25 +28,14 @@ func main() {
 
 	slog.SetDefault(log)
 
-	telemetryInstance, err := telemetry.New(&cfg.Telemetry, log)
-	if err != nil {
-		log.Error("failed to init telemetry", slog.Any("err", err))
-		os.Exit(1)
-	}
-
 	shutdownCtx, shutdownCancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGTERM,
 		syscall.SIGINT,
 	)
 	defer shutdownCancel()
-	defer func() {
-		if err := telemetryInstance.Shutdown(shutdownCtx); err != nil {
-			log.Error("failed to shutdown telemetry", slog.Any("err", err))
-		}
-	}()
 
-	application := app.New(log, cfg, telemetryInstance)
+	application := app.New(log, cfg)
 
 	go func() {
 		application.MustRun()

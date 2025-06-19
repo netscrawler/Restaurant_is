@@ -35,6 +35,7 @@ import (
 	"github.com/netscrawler/Restaurant_is/gate/internal/clients"
 	"github.com/netscrawler/Restaurant_is/gate/internal/config"
 	"github.com/netscrawler/Restaurant_is/gate/internal/handlers"
+	metricsapp "github.com/netscrawler/Restaurant_is/gate/internal/metrics"
 	"github.com/netscrawler/Restaurant_is/gate/internal/middleware"
 	"github.com/netscrawler/Restaurant_is/gate/internal/telemetry"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -103,6 +104,9 @@ func main() {
 		log.Fatalf("failed to init telemetry: %v", err)
 	}
 	defer telemetryObj.Shutdown(context.Background())
+
+	metr := metricsapp.New(logger, telemetryObj, cfg.Telemetry.MetricsPort)
+	metr.MustRun()
 
 	// Инициализация gin
 	r := gin.Default()

@@ -90,7 +90,11 @@ class ApiService {
   }
 
   async updateProfile(data: Partial<User>): Promise<User> {
-    const response: AxiosResponse<User> = await this.api.put('/users/profile', data);
+    // Передаю id, если он есть в localStorage (например, после логина или validate)
+    const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+    const payload = { ...data };
+    if (userId) payload.id = userId;
+    const response: AxiosResponse<User> = await this.api.put('/users/profile', payload);
     return response.data;
   }
 

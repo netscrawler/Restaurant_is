@@ -13,7 +13,6 @@ type UserCreatedPayload struct {
 	UserType string `json:"user_type"`
 	Email    string `json:"email,omitempty"`
 	Phone    string `json:"phone,omitempty"`
-	FullName string `json:"full_name,omitempty"`
 }
 
 type UserEventConsumer struct {

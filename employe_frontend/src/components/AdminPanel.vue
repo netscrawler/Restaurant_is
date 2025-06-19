@@ -70,7 +70,6 @@
         <h2>Заказы</h2>
         <button class="add-btn" @click="showAddOrder = !showAddOrder">{{ showAddOrder ? 'Отмена' : 'Добавить заказ' }}</button>
         <form v-if="showAddOrder" class="add-form" @submit.prevent="addOrder">
-          <input v-model="newOrder.user_id" type="text" placeholder="ID пользователя" required />
           <input v-model.number="newOrder.total_amount" type="number" placeholder="Сумма" required />
           <select v-model="newOrder.status">
             <option v-for="s in ORDER_STATUSES" :key="s.value" :value="s.value">{{ s.label }}</option>
@@ -104,37 +103,156 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const staffList = ref([
-  { id: '1', work_email: 'admin@site.com', position: 'Администратор', roles: ['admin'] },
-  { id: '2', work_email: 'staff@site.com', position: 'Официант', roles: ['staff'] }
-])
+const staffList = ref([])
 const showAddStaff = ref(false)
 const newStaff = ref({ work_email: '', position: '', roles: '' })
-function addStaff() {
-  staffList.value.push({
-    id: String(Date.now()),
-    work_email: newStaff.value.work_email,
-    position: newStaff.value.position,
-    roles: newStaff.value.roles.split(',').map(r => r.trim())
-  })
-  newStaff.value = { work_email: '', position: '', roles: '' }
-  showAddStaff.value = false
+
+async function fetchStaff() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:8080/api/v1/admin/staff', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Ошибка загрузки сотрудников')
+    const data = await res.json()
+    staffList.value = data.staff || []
+  } catch (e) {
+    alert('Ошибка загрузки сотрудников: ' + e.message)
+  }
 }
 
-onMounted(() => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    router.replace('/login')
+async function addStaff() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:8080/api/v1/admin/staff', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        work_email: newStaff.value.work_email,
+        position: newStaff.value.position,
+        roles: newStaff.value.roles.split(',').map(r => r.trim())
+      })
+    })
+    if (!res.ok) throw new Error('Ошибка добавления сотрудника')
+    await fetchStaff()
+    newStaff.value = { work_email: '', position: '', roles: '' }
+    showAddStaff.value = false
+  } catch (e) {
+    alert('Ошибка добавления сотрудника: ' + e.message)
   }
-})
+}
 
-function logout() {
-  localStorage.removeItem('access_token')
-  router.replace('/login')
+const dishes = ref([])
+const showAddDish = ref(false)
+const newDish = ref({ name: '', description: '', price: 0, category_name: '', available: true })
+
+async function fetchDishes() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:8080/api/v1/menu/dishes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Ошибка загрузки блюд')
+    const data = await res.json()
+    dishes.value = data.dishes || []
+  } catch (e) {
+    alert('Ошибка загрузки блюд: ' + e.message)
+  }
+}
+
+async function addDish() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:8080/api/v1/admin/menu/dishes', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: newDish.value.name,
+        description: newDish.value.description,
+        price: newDish.value.price,
+        category_name: newDish.value.category_name,
+        available: newDish.value.available
+      })
+    })
+    if (!res.ok) throw new Error('Ошибка добавления блюда')
+    await fetchDishes()
+    newDish.value = { name: '', description: '', price: 0, category_name: '', available: true }
+    showAddDish.value = false
+  } catch (e) {
+    alert('Ошибка добавления блюда: ' + e.message)
+  }
+}
+
+const orders = ref([])
+const showAddOrder = ref(false)
+const newOrder = ref({ total_amount: 0, status: '', delivery_address: '' })
+
+async function fetchOrders() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:8080/api/v1/orders', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (!res.ok) throw new Error('Ошибка загрузки заказов')
+    const data = await res.json()
+    orders.value = data.orders || []
+  } catch (e) {
+    alert('Ошибка загрузки заказов: ' + e.message)
+  }
+}
+
+async function addOrder() {
+  try {
+    const token = localStorage.getItem('access_token')
+    const userId = localStorage.getItem('user_id')
+    const res = await fetch('http://localhost:8080/api/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        total_amount: newOrder.value.total_amount,
+        status: newOrder.value.status,
+        delivery_address: newOrder.value.delivery_address
+      })
+    })
+    if (!res.ok) throw new Error('Ошибка добавления заказа')
+    await fetchOrders()
+    newOrder.value = { total_amount: 0, status: '', delivery_address: '' }
+    showAddOrder.value = false
+  } catch (e) {
+    alert('Ошибка добавления заказа: ' + (e.message || e))
+  }
+}
+
+async function updateOrderStatus(order, newStatus) {
+  try {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch(`http://localhost:8080/api/v1/admin/orders/${order.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+    if (!res.ok) throw new Error('Ошибка смены статуса заказа')
+    await fetchOrders()
+  } catch (e) {
+    alert('Ошибка смены статуса заказа: ' + e.message)
+  }
 }
 
 const tabs = ['staff', 'dishes', 'orders']
@@ -145,41 +263,24 @@ const tabNames = {
 }
 const currentTab = ref('staff')
 
-const dishes = ref([
-  { id: '1', name: 'Борщ', description: 'Традиционный суп', price: 250, category_name: 'Супы', available: true },
-  { id: '2', name: 'Пицца', description: 'Сырная', price: 500, category_name: 'Пицца', available: false }
-])
-const showAddDish = ref(false)
-const newDish = ref({ name: '', description: '', price: 0, category_name: '', available: true })
-function addDish() {
-  dishes.value.push({
-    id: String(Date.now()),
-    name: newDish.value.name,
-    description: newDish.value.description,
-    price: newDish.value.price,
-    category_name: newDish.value.category_name,
-    available: newDish.value.available
-  })
-  newDish.value = { name: '', description: '', price: 0, category_name: '', available: true }
-  showAddDish.value = false
-}
+onMounted(() => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    router.replace('/login')
+  } else {
+    fetchStaff(); fetchDishes(); fetchOrders();
+  }
+})
 
-const orders = ref([
-  { id: '1', user_id: '2', total_amount: 750, status: 'ORDER_STATUS_READY', delivery_address: 'ул. Ленина, 1' },
-  { id: '2', user_id: '1', total_amount: 250, status: 'ORDER_STATUS_COOKING', delivery_address: 'ул. Мира, 5' }
-])
-const showAddOrder = ref(false)
-const newOrder = ref({ user_id: '', total_amount: 0, status: '', delivery_address: '' })
-function addOrder() {
-  orders.value.push({
-    id: String(Date.now()),
-    user_id: newOrder.value.user_id,
-    total_amount: newOrder.value.total_amount,
-    status: newOrder.value.status,
-    delivery_address: newOrder.value.delivery_address
-  })
-  newOrder.value = { user_id: '', total_amount: 0, status: '', delivery_address: '' }
-  showAddOrder.value = false
+watch(currentTab, (tab) => {
+  if (tab === 'staff') fetchStaff()
+  if (tab === 'dishes') fetchDishes()
+  if (tab === 'orders') fetchOrders()
+})
+
+function logout() {
+  localStorage.removeItem('access_token')
+  router.replace('/login')
 }
 
 /** СТАТУСЫ ЗАКАЗА **/
@@ -194,10 +295,6 @@ const ORDER_STATUSES = [
 function getStatusLabel(status) {
   const found = ORDER_STATUSES.find(s => s.value === status)
   return found ? found.label : status
-}
-
-function updateOrderStatus(order, newStatus) {
-  order.status = newStatus
 }
 </script>
 

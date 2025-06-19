@@ -6,6 +6,9 @@
         <h2>Вход в админ-панель</h2>
         <p class="login-desc">Пожалуйста, введите рабочий email и пароль администратора</p>
       </div>
+      <div class="login-hint">
+        <b>Внимание!</b> Первый сотрудник (админ) должен быть зарегистрирован через API (например, через Postman или Swagger). После этого вы сможете добавлять новых сотрудников через эту панель.
+      </div>
       <form @submit.prevent="login" class="login-form">
         <div class="form-group">
           <label for="email">Email</label>
@@ -35,12 +38,28 @@ const router = useRouter()
 async function login() {
   loading.value = true
   error.value = ''
-  // Заглушка: любая почта и пароль подходят
-  setTimeout(() => {
-    localStorage.setItem('access_token', 'mock_token')
-    router.push('/admin')
+  try {
+    const response = await fetch('http://localhost:8080/api/v1/auth/staff/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staff: { work_email: email.value }, password: password.value })
+    })
+    const data = await response.json()
+    console.log('Ответ авторизации:', data)
+    if (response.ok && data.access_token) {
+      localStorage.setItem('access_token', data.access_token)
+      if (data.user && data.user.id) {
+        localStorage.setItem('user_id', data.user.id)
+      }
+      router.push('/admin')
+    } else {
+      error.value = data.error || data.message || 'Ошибка авторизации'
+    }
+  } catch (e) {
+    error.value = 'Ошибка сети'
+  } finally {
     loading.value = false
-  }, 700)
+  }
 }
 </script>
 
@@ -164,5 +183,15 @@ button[disabled] {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 1.3rem;
+}
+.login-hint {
+  background: #e3edff;
+  color: #223;
+  border-radius: 8px;
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 2.2rem;
+  font-size: 1.1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
 }
 </style> 

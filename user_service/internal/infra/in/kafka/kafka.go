@@ -54,7 +54,7 @@ func (c *UserEventConsumer) Start(ctx context.Context) error {
 }
 
 type UserEventHandler interface {
-	HandleUserCreatedEvent(ctx context.Context, id, email, phone, fullName string) error
+	HandleUserCreatedEvent(ctx context.Context, id, email, phone string) error
 }
 
 type userEventHandler struct {
@@ -74,7 +74,7 @@ func (h *userEventHandler) ConsumeClaim(
 			log.Printf("Failed to unmarshal user_created payload: %v", err)
 			continue
 		}
-		if err := h.handler.HandleUserCreatedEvent(sess.Context(), payload.ID, payload.Email, payload.Phone, payload.FullName); err != nil {
+		if err := h.handler.HandleUserCreatedEvent(sess.Context(), payload.ID, payload.Email, payload.Phone); err != nil {
 			log.Printf("Failed to handle user_created event: %v", err)
 			continue
 		}

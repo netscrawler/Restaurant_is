@@ -56,7 +56,12 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	roleAppService := application.NewRoleAppService(roleService)
 
 	// Инициализация Kafka consumer
-	kafkaConsumer, err := kafka.NewUserEventConsumer(cfg.Kafka.Brokers, cfg.Kafka.GroupID, cfg.Kafka.Topic, userAppService)
+	kafkaConsumer, err := kafka.NewUserEventConsumer(
+		cfg.Kafka.Brokers,
+		cfg.Kafka.GroupID,
+		cfg.Kafka.Topic,
+		userAppService,
+	)
 	if err != nil {
 		panic("failed to create kafka consumer: " + err.Error())
 	}

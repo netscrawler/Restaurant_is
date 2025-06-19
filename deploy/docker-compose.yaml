@@ -675,6 +675,30 @@ services:
     environment:
       - PGPASSWORD=replicator_password
 
+  envoy:
+    image: envoyproxy/envoy:v1.30-latest
+    container_name: envoy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    depends_on:
+      - auth_service
+      - notify
+      - menu_service
+      - order_service
+      - user_service
+      - gate
+      - minio
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
 volumes:
   prometheus_data:
   auth-postgres-data:

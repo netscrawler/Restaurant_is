@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [auth, user_service, order_service, notify, menu_service, gate]
+        service: [ menu_service]
 
     permissions:
       contents: read

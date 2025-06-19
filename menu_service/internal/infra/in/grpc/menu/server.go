@@ -51,6 +51,7 @@ func (s *serverAPI) CreateDish(
 		in.GetImageUrl(),
 		in.GetCookingTimeMin(),
 		in.GetCalories(),
+		in.GetIsAvailable(),
 	)
 
 	createdDish, err := s.dish.Create(ctx, dish)

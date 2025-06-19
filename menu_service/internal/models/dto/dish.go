@@ -110,6 +110,7 @@ func NewDish(
 	imageURL string,
 	cookingTimeMin int32,
 	calories int32,
+	isAvailable bool,
 ) *Dish {
 	created := time.Now()
 
@@ -121,7 +122,7 @@ func NewDish(
 		CategoryID:     category,
 		CookingTimeMin: cookingTimeMin,
 		ImageURL:       imageURL,
-		IsAvailable:    false,
+		IsAvailable:    isAvailable,
 		Calories:       calories,
 		CreatedAt:      &created,
 		UpdatedAt:      &created,

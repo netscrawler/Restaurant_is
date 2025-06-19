@@ -38,7 +38,7 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 		}
 	}
 	if v := c.Query("page_size"); v != "" {
-		if pageSize, err := strconv.Atoi(v); err == nil {
+		if pageSize, err := strconv.ParseInt(v, 10, 32); err == nil {
 			req.PageSize = int32(pageSize)
 		}
 	}

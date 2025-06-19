@@ -106,7 +106,9 @@ func main() {
 	defer telemetryObj.Shutdown(context.Background())
 
 	metr := metricsapp.New(logger, telemetryObj, cfg.Telemetry.MetricsPort)
-	metr.MustRun()
+	go func() {
+		metr.MustRun()
+	}()
 
 	// Инициализация gin
 	r := gin.Default()

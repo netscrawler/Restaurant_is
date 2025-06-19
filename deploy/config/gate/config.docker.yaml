@@ -22,7 +22,7 @@ services:
     host: "notify"
     port: 54822
 
-  telemetry:
+telemetry:
   serviceName: "gate"
   serviceVersion: "1.0.0"
   environment: "production"

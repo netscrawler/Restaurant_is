@@ -78,14 +78,14 @@ func (s *serverAPI) UpdateDish(
 
 	dishUpdate := dto.NewUpdateDishReq(
 		dishID,
-		in.GetName(),
-		in.GetDescription(),
-		in.GetPrice(),
-		in.GetCategoryId(),
-		in.GetCookingTimeMin(),
-		in.GetImageUrl(),
-		in.GetIsAvailable(),
-		in.GetCalories(),
+		in.Name,
+		in.Description,
+		in.Price,
+		in.CategoryId,
+		in.CookingTimeMin,
+		in.ImageUrl,
+		in.IsAvailable,
+		in.Calories,
 	)
 
 	dish, err := s.dish.Update(ctx, dishUpdate)
@@ -130,7 +130,7 @@ func (s *serverAPI) ListDishes(
 	in *menuv1.ListDishesRequest,
 ) (*menuv1.ListDishesResponse, error) {
 	req := dto.NewListDishReq(
-		in.GetCategoryId(),
+		in.CategoryId,
 		in.GetOnlyAvailable(),
 		in.GetPage(),
 		in.GetPageSize(),

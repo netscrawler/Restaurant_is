@@ -97,7 +97,7 @@ func createResource(cfg *config.TelemertyConfig) *resource.Resource {
 		semconv.SchemaURL,
 		semconv.ServiceName(cfg.ServiceName),
 		semconv.ServiceVersion(cfg.ServiceVersion),
-		semconv.ServiceNamespace("menu-service"),
+		semconv.ServiceNamespace("gate"),
 	)
 }
 

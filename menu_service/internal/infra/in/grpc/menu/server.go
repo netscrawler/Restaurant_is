@@ -129,9 +129,20 @@ func (s *serverAPI) ListDishes(
 	ctx context.Context,
 	in *menuv1.ListDishesRequest,
 ) (*menuv1.ListDishesResponse, error) {
+	var categoryID *int32
+	if in.CategoryId != nil && in.GetCategoryId() != 0 {
+		categoryID = in.CategoryId
+	}
+
+	onlyAvailable := in.GetOnlyAvailable()
+	// Если явно не задано, считаем что фильтр не применяется
+	if in.CategoryId == nil || in.GetCategoryId() == 0 {
+		onlyAvailable = false
+	}
+
 	req := dto.NewListDishReq(
-		in.CategoryId,
-		in.GetOnlyAvailable(),
+		categoryID,
+		onlyAvailable,
 		in.GetPage(),
 		in.GetPageSize(),
 	)

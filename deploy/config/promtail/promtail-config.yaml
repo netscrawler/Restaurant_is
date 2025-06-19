@@ -26,19 +26,58 @@ scrape_configs:
             time: time
             level: level
             msg: msg
-            source_function: source.function
-            source_file: source.file
-            source_line: source.line
+            channel: channel
+            method: method
+            request: request
+            response: response
+            trace_id: trace_id
+            recipient: recipient
+            query: query
+            headers: headers
+            body: body
+            client_ip: client_ip
+            user_agent: user_agent
+            host: host
+            proto: proto
+            message: message
+            status: status
+            latency: latency
+            path: path
+            service: service
             storage: storage
             func: func
             bucket: bucket
             addr: addr
-            service: service
             server: server
+            content_type: content_type
       - labels:
           level: level
+          msg: msg
+          channel: channel
+          method: method
+          request: request
+          response: response
+          trace_id: trace_id
+          recipient: recipient
+          query: query
+          headers: headers
+          body: body
+          client_ip: client_ip
+          user_agent: user_agent
+          host: host
+          proto: proto
+          message: message
+          status: status
+          latency: latency
+          path: path
           service: service
           storage: storage
+          func: func
+          bucket: bucket
+          addr: addr
+          server: server
+          content_type: content_type
+
       - timestamp:
           source: time
           format: RFC3339Nano

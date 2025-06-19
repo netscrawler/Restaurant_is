@@ -9,6 +9,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	ordergrpc "github.com/netscrawler/Restaurant_is/order_service/internal/grpc/order"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -35,10 +36,13 @@ func New(
 		}),
 	}
 
-	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		recovery.UnaryServerInterceptor(recoveryOpts...),
-		UnaryLoggingInterceptor(log),
-	))
+	gRPCServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(recoveryOpts...),
+			UnaryLoggingInterceptor(log),
+		))
 
 	ordergrpc.Register(gRPCServer, orderService)
 

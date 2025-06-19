@@ -5,6 +5,7 @@ import (
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	notify "github.com/netscrawler/RispProtos/proto/gen/go/v1/notify"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials/insecure"
@@ -27,6 +28,7 @@ func New(ctx context.Context, cfg config.NotifyClient) (*Client, error) {
 			},
 			MinConnectTimeout: cfg.MinConnectTimeout,
 		}),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 	)
 	if err != nil {
 		return nil, err

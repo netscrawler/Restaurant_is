@@ -100,3 +100,37 @@ func (o *Order) UpdateStatus(ctx context.Context, orderID uuid.UUID, newStatus s
 	// _, err = o.repo.Save(ctx, repository.NewOrder(order))
 	return nil
 }
+
+func (o *Order) GetOrder(ctx context.Context, orderID string) (*repository.Order, error) {
+	id, err := uuid.Parse(orderID)
+	if err != nil {
+		return nil, err
+	}
+	return o.repo.Get(ctx, id)
+}
+
+func (o *Order) ListOrders(ctx context.Context, filter dto.OrderFilter) ([]*repository.Order, error) {
+	return o.repo.(interface {
+		ListOrders(context.Context, dto.OrderFilter) ([]*repository.Order, error)
+	}).ListOrders(ctx, filter)
+}
+
+func (o *Order) UpdateOrderStatus(ctx context.Context, orderID string, status string) error {
+	id, err := uuid.Parse(orderID)
+	if err != nil {
+		return err
+	}
+	order, err := o.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	order.Status = status
+	order.UpdatedAt = time.Now()
+	type updater interface {
+		Update(context.Context, *repository.Order) error
+	}
+	if u, ok := o.repo.(updater); ok {
+		return u.Update(ctx, order)
+	}
+	return nil
+}

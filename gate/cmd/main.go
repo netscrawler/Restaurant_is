@@ -37,6 +37,7 @@ import (
 	metricsapp "github.com/netscrawler/Restaurant_is/gate/internal/metrics"
 	"github.com/netscrawler/Restaurant_is/gate/internal/middleware"
 	"github.com/netscrawler/Restaurant_is/gate/internal/telemetry"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	otelgin "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -110,6 +111,10 @@ func main() {
 
 	// Инициализация gin
 	r := gin.Default()
+	// Включаем автоматический трейсинг HTTP-запросов через otelgin
+	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))
+
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	r.Use(middleware.LoggingMiddleware(logger))
 	// Кастомный CORS: разрешаем Authorization, любые методы, любые заголовки, любые origin
@@ -120,9 +125,6 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
-
-	// Включаем автоматический трейсинг HTTP-запросов через otelgin
-	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))
 
 	// Endpoint для Prometheus метрик на отдельном порту
 	// go func() {

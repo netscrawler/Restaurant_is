@@ -1,20 +1,20 @@
 package botapp
 
 import (
+	"log/slog"
 	"time"
 
-	"go.uber.org/zap"
 	"gopkg.in/telebot.v4"
 )
 
 type Bot struct {
 	Bot *telebot.Bot
-	log *zap.Logger
+	log *slog.Logger
 	// router *bot.Router
 }
 
 func New(
-	log *zap.Logger,
+	log *slog.Logger,
 	token string,
 	poll time.Duration,
 ) (*Bot, error) {

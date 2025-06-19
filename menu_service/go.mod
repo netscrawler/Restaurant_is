@@ -66,6 +66,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/minio/minio-go/v7 v7.0.94
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )

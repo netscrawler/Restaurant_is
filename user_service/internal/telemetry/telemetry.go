@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"time"
 
+	"user_service/internal/config"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -17,7 +19,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"user_service/internal/config"
 )
 
 // Config содержит конфигурацию телеметрии
@@ -95,7 +96,7 @@ func createResource(cfg *config.TelemertyConfig) *resource.Resource {
 		semconv.SchemaURL,
 		semconv.ServiceName(cfg.ServiceName),
 		semconv.ServiceVersion(cfg.ServiceVersion),
-		semconv.ServiceNamespace("menu-service"),
+		semconv.ServiceNamespace("user-service"),
 	)
 }
 

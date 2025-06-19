@@ -8,6 +8,7 @@ import (
 	menuv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/menu"
 	orderv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/order"
 	userv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/user"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -40,6 +41,8 @@ func NewGRPCClients(config map[string]string) (*GRPCClients, error) {
 			address,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithIdleTimeout(5*time.Second),
+
+			grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to %s service: %w", service, err)

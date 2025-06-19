@@ -19,6 +19,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   notify:
     image: ghcr.io/netscrawler/restaurant_is-notify:latest
@@ -37,6 +38,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   menu_service:
     image: ghcr.io/netscrawler/restaurant_is-menu_service:latest
@@ -58,6 +60,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   order_service:
     image: ghcr.io/netscrawler/restaurant_is-order_service:latest
@@ -79,6 +82,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   user_service:
     image: ghcr.io/netscrawler/restaurant_is-user_service:latest
@@ -100,6 +104,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   gate:
     image: ghcr.io/netscrawler/restaurant_is-gate:latest
@@ -121,6 +126,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   user_db:
     image: postgres:latest
@@ -147,6 +153,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   auth_db:
     image: postgres:latest
@@ -173,6 +180,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   menu_db:
     image: postgres:latest
@@ -199,6 +207,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   order_db:
     image: postgres:latest
@@ -225,6 +234,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest
@@ -250,6 +260,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -273,6 +284,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -291,6 +303,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   loki:
     image: grafana/loki:3.2.1
@@ -308,6 +321,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   promtail:
     image: grafana/promtail:3.2.1
@@ -327,6 +341,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:11.2.2
@@ -345,6 +360,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
   metabase-db:
     image: postgres:15
@@ -405,6 +421,7 @@ services:
         max-file: "3"
     networks:
       - risp
+    restart: unless-stopped
 
   # Prometheus - для метрик
   prometheus:
@@ -428,6 +445,7 @@ services:
         max-file: "3"
     networks:
       - risp
+    restart: unless-stopped
 
   jaeger:
     image: jaegertracing/all-in-one:1.56
@@ -444,6 +462,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    restart: unless-stopped
 
 volumes:
   prometheus_data:

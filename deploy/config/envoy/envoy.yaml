@@ -1,0 +1,145 @@
+static_resources:
+  listeners:
+    - name: grpc_and_http
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8080
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress
+                codec_type: AUTO
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: auth
+                      domains: ["auth.localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: auth_service }
+
+                    - name: notify
+                      domains: ["notify.localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: notify }
+
+                    - name: menu
+                      domains: ["menu.localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: menu_service }
+
+                    - name: order
+                      domains: ["order.localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: order_service }
+
+                    - name: user
+                      domains: ["user.localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: user_service }
+
+                    - name: gate
+                      domains: ["*", "localhost"]
+                      routes:
+                        - match: { prefix: "/" }
+                          route: { cluster: gate_service }
+
+                http_filters:
+                  - name: envoy.filters.http.router
+
+  clusters:
+    - name: auth_service
+      connect_timeout: 0.5s
+      type: strict_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: auth_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: auth_service
+                      port_value: 54821
+
+    - name: notify
+      connect_timeout: 0.5s
+      type: strict_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: notify
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: notify
+                      port_value: 54822
+
+    - name: menu_service
+      connect_timeout: 0.5s
+      type: strict_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: menu_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: menu_service
+                      port_value: 50052
+
+    - name: order_service
+      connect_timeout: 0.5s
+      type: strict_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: order_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: order_service
+                      port_value: 50051
+
+    - name: user_service
+      connect_timeout: 0.5s
+      type: strict_dns
+      http2_protocol_options: {}
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: user_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: user_service
+                      port_value: 50045
+
+    - name: gate_service
+      connect_timeout: 0.5s
+      type: strict_dns
+      lb_policy: round_robin
+      load_assignment:
+        cluster_name: gate_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: gate
+                      port_value: 8080

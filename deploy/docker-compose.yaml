@@ -638,7 +638,7 @@ services:
   subscription_setup_auth:
     image: postgres:17
     depends_on:
-      - auth_db
+      - auth_db_replica
     volumes:
       - ./migrations/auth/pg/setup_subscription.sh:/setup_subscription.sh:ro
     entrypoint: ["bash", "/setup_subscription.sh"]
@@ -648,7 +648,7 @@ services:
   subscription_setup_menu:
     image: postgres:17
     depends_on:
-      - menu_db
+      - menu_db_replica
     volumes:
       - ./migrations/menu/pg/setup_subscription.sh:/setup_subscription.sh:ro
     entrypoint: ["bash", "/setup_subscription.sh"]
@@ -658,7 +658,7 @@ services:
   subscription_setup_order:
     image: postgres:17
     depends_on:
-      - order_db
+      - order_db_replica
     volumes:
       - ./migrations/order/pg/setup_subscription.sh:/setup_subscription.sh:ro
     entrypoint: ["bash", "/setup_subscription.sh"]
@@ -668,7 +668,7 @@ services:
   subscription_setup_user:
     image: postgres:17
     depends_on:
-      - user_db
+      - user_db_replica
     volumes:
       - ./migrations/user/pg/setup_subscription.sh:/setup_subscription.sh:ro
     entrypoint: ["bash", "/setup_subscription.sh"]

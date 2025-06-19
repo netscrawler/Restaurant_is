@@ -11,19 +11,21 @@ import (
 	"user_service/internal/config"
 	application "user_service/internal/domain/app"
 	"user_service/internal/domain/service"
+	"user_service/internal/infra/in/kafka"
 	pgrepo "user_service/internal/infra/out/postgres"
 	"user_service/internal/storage/postgres"
 	"user_service/internal/telemetry"
 )
 
 type App struct {
-	cfg        *config.Config
-	log        *slog.Logger
-	db         *postgres.Storage
-	grpcApp    *grpcapp.App
-	health     *health.App
-	metricsApp *metricsapp.App
-	telemetry  *telemetry.Telemetry
+	cfg           *config.Config
+	log           *slog.Logger
+	db            *postgres.Storage
+	grpcApp       *grpcapp.App
+	health        *health.App
+	metricsApp    *metricsapp.App
+	telemetry     *telemetry.Telemetry
+	kafkaConsumer *kafka.UserEventConsumer
 }
 
 func New(log *slog.Logger, cfg *config.Config) *App {
@@ -53,6 +55,17 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	staffAppService := application.NewStaffAppService(staffService)
 	roleAppService := application.NewRoleAppService(roleService)
 
+	// Инициализация Kafka consumer
+	kafkaConsumer, err := kafka.NewUserEventConsumer(
+		cfg.Kafka.Brokers,
+		cfg.Kafka.GroupID,
+		cfg.Kafka.Topic,
+		userAppService,
+	)
+	if err != nil {
+		panic("failed to create kafka consumer: " + err.Error())
+	}
+
 	grpc := grpcapp.New(
 		log,
 		userAppService,
@@ -74,13 +87,14 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	metricsApp := metricsapp.New(log, telemetryInstance, cfg.Telemetry.MetricsPort)
 
 	return &App{
-		cfg:        cfg,
-		log:        log,
-		db:         db,
-		grpcApp:    grpc,
-		health:     health,
-		metricsApp: metricsApp,
-		telemetry:  telemetryInstance,
+		cfg:           cfg,
+		log:           log,
+		db:            db,
+		grpcApp:       grpc,
+		health:        health,
+		metricsApp:    metricsApp,
+		telemetry:     telemetryInstance,
+		kafkaConsumer: kafkaConsumer,
 	}
 }
 
@@ -88,6 +102,11 @@ func (a *App) MustRun() {
 	// Инициализация gRPC сервера
 	go func() {
 		a.metricsApp.MustRun()
+	}()
+	go func() {
+		if err := a.kafkaConsumer.Start(context.Background()); err != nil {
+			a.log.Error("Kafka consumer stopped", "err", err)
+		}
 	}()
 	a.grpcApp.MustRun()
 }

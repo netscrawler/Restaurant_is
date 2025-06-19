@@ -15,6 +15,12 @@ const (
 	ActionLogout       AuthEventAction = "logout"
 	ActionTokenRefresh AuthEventAction = "token_refresh"
 	ActionTokenRevoke  AuthEventAction = "token_revoke"
+	ActionRegister     AuthEventAction = "register"
+
+	// Специализированные события для аудита
+	ActionLoginClient   AuthEventAction = "login_client"
+	ActionLoginStaff    AuthEventAction = "login_staff"
+	ActionRegisterStaff AuthEventAction = "register_staff"
 )
 
 // AuthEvent представляет событие аутентификации.

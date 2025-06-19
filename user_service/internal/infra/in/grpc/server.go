@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	service "user_service/internal/domain/app"
+
 	userv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/user"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
-	service "user_service/internal/domain/app"
 )
 
 type serverAPI struct {

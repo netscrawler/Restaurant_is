@@ -3,12 +3,12 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
+
+	"user_service/internal/domain/models"
+	"user_service/internal/domain/service"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"user_service/internal/domain/models"
-	"user_service/internal/domain/service"
 )
 
 // UserAppService представляет application сервис для работы с пользователями.
@@ -33,7 +33,7 @@ type CreateUserRequest struct {
 
 // CreateUserResponse представляет ответ на создание пользователя.
 type CreateUserResponse struct {
-	ID        int64
+	ID        string
 	Email     string
 	Phone     string
 	FullName  string
@@ -54,7 +54,7 @@ func (s *UserAppService) CreateUser(
 	}
 
 	return &CreateUserResponse{
-		ID:        int64(user.ID.ID()), // Преобразуем UUID в int64
+		ID:        user.ID.String(), // Преобразуем UUID в int64
 		Email:     user.Email,
 		Phone:     user.Phone,
 		FullName:  user.FullName,
@@ -65,16 +65,36 @@ func (s *UserAppService) CreateUser(
 	}, nil
 }
 
+// HandleUserCreatedEvent обрабатывает событие user_created из Kafka
+func (s *UserAppService) HandleUserCreatedEvent(
+	ctx context.Context,
+	id, email, phone string,
+) error {
+	// Проверяем, существует ли пользователь с таким id/email/phone
+	// Если нет — создаем, если есть — можно обновить или пропустить (по бизнес-логике)
+	_, err := s.userService.GetUserByEmail(ctx, email)
+	if err == nil {
+		return nil // Уже есть, не создаём
+	}
+	_, err = s.userService.GetUserByPhone(ctx, phone)
+	if err == nil {
+		return nil // Уже есть, не создаём
+	}
+	// Создаём пользователя
+	_, err = s.userService.CreateUser(ctx, email, phone, "")
+	return err
+}
+
 // GetUserRequest представляет запрос на получение пользователя.
 type GetUserRequest struct {
-	ID    *int64
+	ID    *string
 	Email *string
 	Phone *string
 }
 
 // GetUserResponse представляет ответ на получение пользователя.
 type GetUserResponse struct {
-	ID        int64
+	ID        string
 	Email     string
 	Phone     string
 	FullName  string
@@ -91,26 +111,30 @@ func (s *UserAppService) GetUser(
 ) (*GetUserResponse, error) {
 	var user *models.User
 
-	var err error
-
 	if req.ID != nil {
 		// Создаем UUID из int64
-		userID := uuid.MustParse(fmt.Sprintf("%016x-0000-0000-0000-000000000000", *req.ID))
+		userID, err := uuid.Parse(*req.ID)
+		if err != nil {
+			return nil, err
+		}
 		user, err = s.userService.GetUser(ctx, userID)
-	} else if req.Email != nil {
-		user, err = s.userService.GetUserByEmail(ctx, *req.Email)
-	} else if req.Phone != nil {
-		user, err = s.userService.GetUserByPhone(ctx, *req.Phone)
-	} else {
+		if err != nil {
+			return nil, err
+		}
+	}
+	if req.Email != nil {
+		user, _ = s.userService.GetUserByEmail(ctx, *req.Email)
+	}
+	if req.Phone != nil {
+		user, _ = s.userService.GetUserByPhone(ctx, *req.Phone)
+	}
+
+	if user == nil {
 		return nil, errors.New("no identifier provided")
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	return &GetUserResponse{
-		ID:        int64(user.ID.ID()),
+		ID:        user.ID.String(),
 		Email:     user.Email,
 		Phone:     user.Phone,
 		FullName:  user.FullName,
@@ -123,7 +147,7 @@ func (s *UserAppService) GetUser(
 
 // UpdateUserRequest представляет запрос на обновление пользователя.
 type UpdateUserRequest struct {
-	ID       int64
+	ID       string
 	Email    *string
 	Phone    *string
 	FullName *string
@@ -132,7 +156,7 @@ type UpdateUserRequest struct {
 
 // UpdateUserResponse представляет ответ на обновление пользователя.
 type UpdateUserResponse struct {
-	ID        int64
+	ID        string
 	Email     string
 	Phone     string
 	FullName  string
@@ -147,7 +171,10 @@ func (s *UserAppService) UpdateUser(
 	ctx context.Context,
 	req *UpdateUserRequest,
 ) (*UpdateUserResponse, error) {
-	userID := uuid.MustParse(fmt.Sprintf("%016x-0000-0000-0000-000000000000", req.ID))
+	userID, err := uuid.Parse(req.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	email := ""
 	if req.Email != nil {
@@ -170,7 +197,7 @@ func (s *UserAppService) UpdateUser(
 	}
 
 	return &UpdateUserResponse{
-		ID:        int64(user.ID.ID()),
+		ID:        user.ID.String(),
 		Email:     user.Email,
 		Phone:     user.Phone,
 		FullName:  user.FullName,
@@ -183,12 +210,15 @@ func (s *UserAppService) UpdateUser(
 
 // DeleteUserRequest представляет запрос на удаление пользователя.
 type DeleteUserRequest struct {
-	ID int64
+	ID string
 }
 
 // DeleteUser удаляет пользователя.
 func (s *UserAppService) DeleteUser(ctx context.Context, req *DeleteUserRequest) error {
-	userID := uuid.MustParse(fmt.Sprintf("%016x-0000-0000-0000-000000000000", req.ID))
+	userID, err := uuid.Parse(req.ID)
+	if err != nil {
+		return err
+	}
 
 	return s.userService.DeleteUser(ctx, userID)
 }
@@ -222,7 +252,7 @@ func (s *UserAppService) ListUsers(
 	userResponses := make([]*GetUserResponse, len(users))
 	for i, user := range users {
 		userResponses[i] = &GetUserResponse{
-			ID:        int64(user.ID.ID()),
+			ID:        user.ID.String(),
 			Email:     user.Email,
 			Phone:     user.Phone,
 			FullName:  user.FullName,

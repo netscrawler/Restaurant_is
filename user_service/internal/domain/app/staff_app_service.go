@@ -2,11 +2,11 @@ package application
 
 import (
 	"context"
-	"fmt"
+
+	"user_service/internal/domain/service"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"user_service/internal/domain/service"
 )
 
 // StaffAppService представляет application сервис для работы с сотрудниками.
@@ -32,7 +32,7 @@ type CreateStaffRequest struct {
 
 // CreateStaffResponse представляет ответ на создание сотрудника.
 type CreateStaffResponse struct {
-	ID        int64
+	ID        string
 	WorkEmail string
 	WorkPhone string
 	FullName  string
@@ -59,7 +59,7 @@ func (s *StaffAppService) CreateStaff(
 	}
 
 	return &CreateStaffResponse{
-		ID:        int64(staff.ID.ID()),
+		ID:        staff.ID.String(),
 		WorkEmail: staff.WorkEmail,
 		WorkPhone: staff.WorkPhone,
 		FullName:  staff.FullName,
@@ -72,7 +72,7 @@ func (s *StaffAppService) CreateStaff(
 
 // UpdateStaffRequest представляет запрос на обновление сотрудника.
 type UpdateStaffRequest struct {
-	ID        int64
+	ID        string
 	WorkPhone *string
 	Position  *string
 	IsActive  *bool
@@ -80,7 +80,7 @@ type UpdateStaffRequest struct {
 
 // UpdateStaffResponse представляет ответ на обновление сотрудника.
 type UpdateStaffResponse struct {
-	ID        int64
+	ID        string
 	WorkEmail string
 	WorkPhone string
 	FullName  string
@@ -95,7 +95,10 @@ func (s *StaffAppService) UpdateStaff(
 	ctx context.Context,
 	req *UpdateStaffRequest,
 ) (*UpdateStaffResponse, error) {
-	staffID := uuid.MustParse(fmt.Sprintf("%016x-0000-0000-0000-000000000000", req.ID))
+	staffID, err := uuid.Parse(req.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	workPhone := ""
 	if req.WorkPhone != nil {
@@ -113,7 +116,7 @@ func (s *StaffAppService) UpdateStaff(
 	}
 
 	return &UpdateStaffResponse{
-		ID:        int64(staff.ID.ID()),
+		ID:        staff.ID.String(),
 		WorkEmail: staff.WorkEmail,
 		WorkPhone: staff.WorkPhone,
 		FullName:  staff.FullName,
@@ -153,7 +156,7 @@ func (s *StaffAppService) ListStaff(
 	staffResponses := make([]*CreateStaffResponse, len(staff))
 	for i, st := range staff {
 		staffResponses[i] = &CreateStaffResponse{
-			ID:        int64(st.ID.ID()),
+			ID:        st.ID.String(),
 			WorkEmail: st.WorkEmail,
 			WorkPhone: st.WorkPhone,
 			FullName:  st.FullName,

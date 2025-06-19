@@ -78,6 +78,9 @@ func (i *Image) CreateURL(
 		)
 	}
 
+	presignedURL.Host = "localhost:9000"
+	presignedURL.Scheme = "http"
+
 	return presignedURL.String(), objKey, nil
 }
 

@@ -49,7 +49,11 @@ const saveProfile = async () => {
   error.value = '';
   success.value = false;
   try {
-    await apiService.updateProfile(form.value);
+    await apiService.updateProfile({
+      name: form.value.name,
+      phone: form.value.phone,
+      email: form.value.email
+    });
     success.value = true;
     setTimeout(() => (success.value = false), 2000);
   } catch (err: any) {

@@ -113,7 +113,9 @@ func main() {
 	r := gin.Default()
 	// Включаем автоматический трейсинг HTTP-запросов через otelgin
 	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))
+
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	r.Use(middleware.LoggingMiddleware(logger))
 	// Кастомный CORS: разрешаем Authorization, любые методы, любые заголовки, любые origin
 	r.Use(cors.New(cors.Config{

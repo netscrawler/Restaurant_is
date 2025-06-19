@@ -1,12 +1,11 @@
 package app
 
 import (
+	"log/slog"
 	botapp "notify/internal/app/bot"
 	grpcapp "notify/internal/app/grpc"
 	"notify/internal/config"
 	service "notify/internal/service/stub"
-
-	"go.uber.org/zap"
 )
 
 type App struct {
@@ -14,8 +13,8 @@ type App struct {
 	grpcApp *grpcapp.App
 }
 
-func New(log *zap.Logger, cfg *config.Config) *App {
-	log = log.With(zap.String("channel", "telegram chat"))
+func New(log *slog.Logger, cfg *config.Config) *App {
+	log = log.With("channel", "telegram chat")
 
 	bot, err := botapp.New(log, cfg.Bot.TelegramToken, cfg.Bot.BotPoll)
 	if err != nil {

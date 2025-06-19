@@ -21,3 +21,9 @@ telemetry:
   environment: "production"
   metricsPort: 10006
   traceEndpoint: "jaeger:4317"
+
+kafka:
+  brokers:
+    - "kafka:9092"
+  topic: "user-events"
+  groupID: "user_service_group"

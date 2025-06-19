@@ -113,6 +113,16 @@ func (s *serverAPI) RegisterStaff(
 		return nil, status.Error(codes.Internal, "")
 	}
 
+	// Audit log for registration
+	_ = s.audit.LogEvent(
+		ctx,
+		st.ID.String(),
+		string(models.UserTypeStaff),
+		models.ActionRegisterStaff,
+		"", // TODO: extract ipAddress from ctx
+		"", // TODO: extract userAgent from ctx
+	)
+
 	return &authv1.RegisterStaffResponse{
 		Staff: &authv1.Staff{
 			WorkEmail: st.WorkEmail,
@@ -210,6 +220,16 @@ func (s *serverAPI) LoginClientConfirm(
 	default:
 	}
 
+	// Audit log for client login
+	_ = s.audit.LogEvent(
+		ctx,
+		user.ID.String(),
+		string(models.UserTypeClient),
+		models.ActionLoginClient,
+		"", // TODO: extract ipAddress from ctx
+		"", // TODO: extract userAgent from ctx
+	)
+
 	return &authv1.LoginResponse{
 		AccessToken:           tkn,
 		ExpiresIn:             tknExp,
@@ -295,6 +315,16 @@ func (s *serverAPI) LoginStaff(
 		return nil, status.Error(codes.Internal, err.Error())
 	default:
 	}
+
+	// Audit log for staff login
+	_ = s.audit.LogEvent(
+		ctx,
+		user.ID.String(),
+		string(models.UserTypeStaff),
+		models.ActionLoginStaff,
+		"", // TODO: extract ipAddress from ctx
+		"", // TODO: extract userAgent from ctx
+	)
 
 	return &authv1.LoginResponse{
 		AccessToken:           tkn,

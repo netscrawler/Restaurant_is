@@ -9,13 +9,15 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
+	kafkarepo "github.com/netscrawler/Restaurant_is/auth/internal/repository/kafka_repo"
 )
 
 type UserService struct {
-	clientRepo repository.ClientRepository
-	staffRepo  repository.StaffRepository
-	log        *slog.Logger
-	ntf        NotifySender
+	clientRepo        repository.ClientRepository
+	staffRepo         repository.StaffRepository
+	log               *slog.Logger
+	ntf               NotifySender
+	userEventProducer *kafkarepo.UserEventProducer
 }
 
 func NewUserService(
@@ -23,12 +25,14 @@ func NewUserService(
 	staff repository.StaffRepository,
 	notify NotifySender,
 	log *slog.Logger,
+	userEventProducer *kafkarepo.UserEventProducer,
 ) *UserService {
 	return &UserService{
-		clientRepo: client,
-		staffRepo:  staff,
-		log:        log,
-		ntf:        notify,
+		clientRepo:        client,
+		staffRepo:         staff,
+		log:               log,
+		ntf:               notify,
+		userEventProducer: userEventProducer,
 	}
 }
 
@@ -53,6 +57,11 @@ func (u *UserService) RegisterStaff(
 	err = u.staffRepo.CreateStaff(ctx, staff)
 	if err != nil {
 		return nil, domain.ErrInternal
+	}
+
+	err = u.userEventProducer.SendUserCreatedEvent(ctx, staff)
+	if err != nil {
+		u.log.Error("failed to publish user_created event", slog.Any("error", err))
 	}
 
 	msg := fmt.Sprintf("Your registered in system,\nLogin:%s\nPassword:%s", email, pswd)

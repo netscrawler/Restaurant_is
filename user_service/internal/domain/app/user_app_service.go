@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"user_service/internal/domain/models"
 	"user_service/internal/domain/service"
+
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // UserAppService представляет application сервис для работы с пользователями.
@@ -63,6 +64,23 @@ func (s *UserAppService) CreateUser(
 		UpdatedAt: timestamppb.New(user.UpdatedAt),
 		Roles:     []string{}, // Пока пустой список ролей
 	}, nil
+}
+
+// HandleUserCreatedEvent обрабатывает событие user_created из Kafka
+func (s *UserAppService) HandleUserCreatedEvent(ctx context.Context, id, email, phone, fullName string) error {
+	// Проверяем, существует ли пользователь с таким id/email/phone
+	// Если нет — создаем, если есть — можно обновить или пропустить (по бизнес-логике)
+	_, err := s.userService.GetUserByEmail(ctx, email)
+	if err == nil {
+		return nil // Уже есть, не создаём
+	}
+	_, err = s.userService.GetUserByPhone(ctx, phone)
+	if err == nil {
+		return nil // Уже есть, не создаём
+	}
+	// Создаём пользователя
+	_, err = s.userService.CreateUser(ctx, email, phone, fullName)
+	return err
 }
 
 // GetUserRequest представляет запрос на получение пользователя.

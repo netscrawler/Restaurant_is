@@ -15,6 +15,15 @@ type Config struct {
 	DB         DatabaseConfig  `yaml:"db"         env:"DATABASE_CONFIG"`
 	GRPCServer gRPC            `yaml:"grpcServer" env:"GRPC_SERVER_CONFIG"`
 	Telemetry  TelemertyConfig `yaml:"telemetry"`
+	Kafka      Kafka           `yaml:"kafka"`
+}
+
+type Kafka struct {
+	Brokers         []string `yaml:"brokers"         env:"KAFKA_BROKERS"          env-default:"localhost:9092"`
+	Topic           string   `yaml:"topic"           env:"KAFKA_TOPIC"            env-default:"events"`
+	GroupID         string   `yaml:"groupID"         env:"KAFKA_GROUP_ID"          env-default:"user_service_group"`
+	RetryMax        int      `yaml:"retryMax"        env:"KAFKA_RETRY_MAX"        env-default:"5"`
+	ReturnSuccesses bool     `yaml:"returnSuccesses" env:"KAFKA_RETURN_SUCCESSES" env-default:"true"`
 }
 
 type DatabaseConfig struct {

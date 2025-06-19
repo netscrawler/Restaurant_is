@@ -9,9 +9,11 @@ import (
 	notifyclient "github.com/netscrawler/Restaurant_is/auth/internal/app/notifyclient"
 	"github.com/netscrawler/Restaurant_is/auth/internal/config"
 	notify "github.com/netscrawler/Restaurant_is/auth/internal/infra/out/grpc"
+	kafkainfra "github.com/netscrawler/Restaurant_is/auth/internal/infra/out/kafka"
 	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	inmemcache "github.com/netscrawler/Restaurant_is/auth/internal/repository/in_mem_cache"
+	kafkarepo "github.com/netscrawler/Restaurant_is/auth/internal/repository/kafka_repo"
 	pgrepo "github.com/netscrawler/Restaurant_is/auth/internal/repository/pg_repo"
 	"github.com/netscrawler/Restaurant_is/auth/internal/service"
 	"github.com/netscrawler/Restaurant_is/auth/internal/telemetry"
@@ -46,6 +48,13 @@ func New(log *slog.Logger, cfg config.Config, tel *telemetry.Telemetry) *App {
 
 	codeProvider := inmemcache.New(cfg.CodeLife)
 
+	// --- Kafka init ---
+	kafkaClient, err := kafkainfra.NewKafka(cfg.Kafka)
+	if err != nil {
+		panic(err)
+	}
+	userEventProducer := kafkarepo.NewUserEventProducer(kafkaClient, cfg.Kafka.Topic)
+
 	authService := service.NewAuthService(
 		log,
 		clientRepo,
@@ -55,10 +64,11 @@ func New(log *slog.Logger, cfg config.Config, tel *telemetry.Telemetry) *App {
 		notifySender,
 		codeProvider,
 		jwt,
+		userEventProducer,
 	)
 	audit := service.NewAuditService(auditRepo, log)
 	token := service.NewTokenService(tokenRepo, jwt, log)
-	user := service.NewUserService(clientRepo, stafRepo, notifySender, log)
+	user := service.NewUserService(clientRepo, stafRepo, notifySender, log, userEventProducer)
 	gRPCServ := grpcapp.New(log, authService, audit, token, user, cfg.GRPCServer.Port)
 
 	metr := metricsapp.New(log, tel, cfg.Telemetry.MetricsPort)

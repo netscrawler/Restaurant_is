@@ -12,6 +12,7 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
+	kafkarepo "github.com/netscrawler/Restaurant_is/auth/internal/repository/kafka_repo"
 	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 )
 
@@ -25,12 +26,13 @@ type CodeProvider interface {
 }
 
 type AuthService struct {
-	log          *slog.Logger
-	clientRepo   repository.ClientRepository
-	staffRepo    repository.StaffRepository
-	notify       NotifySender
-	codeProvider CodeProvider
-	jwtManager   *utils.JWTManager
+	log               *slog.Logger
+	clientRepo        repository.ClientRepository
+	staffRepo         repository.StaffRepository
+	notify            NotifySender
+	codeProvider      CodeProvider
+	jwtManager        *utils.JWTManager
+	userEventProducer *kafkarepo.UserEventProducer
 }
 
 func NewAuthService(
@@ -40,14 +42,16 @@ func NewAuthService(
 	notifySender NotifySender,
 	codeProvider CodeProvider,
 	jwtManager *utils.JWTManager,
+	userEventProducer *kafkarepo.UserEventProducer,
 ) *AuthService {
 	return &AuthService{
-		clientRepo:   clientRepo,
-		staffRepo:    staffRepo,
-		jwtManager:   jwtManager,
-		notify:       notifySender,
-		log:          log,
-		codeProvider: codeProvider,
+		clientRepo:        clientRepo,
+		staffRepo:         staffRepo,
+		jwtManager:        jwtManager,
+		notify:            notifySender,
+		log:               log,
+		codeProvider:      codeProvider,
+		userEventProducer: userEventProducer,
 	}
 }
 
@@ -66,6 +70,11 @@ func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 		err = a.clientRepo.CreateClient(ctx, user)
 		if err != nil {
 			return domain.ErrInternal
+		}
+
+		err = a.userEventProducer.SendUserCreatedEvent(ctx, user)
+		if err != nil {
+			log.Error("failed to publish user_created event", slog.Any("error", err))
 		}
 	case err != nil:
 		return domain.ErrInternal

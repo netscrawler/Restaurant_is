@@ -39,9 +39,10 @@ func NewGRPCClients(config map[string]string) (*GRPCClients, error) {
 
 		conn, err := grpc.NewClient(
 			address,
-			grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithIdleTimeout(5*time.Second),
+
+			grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to %s service: %w", service, err)

@@ -30,12 +30,6 @@ type Telemetry struct {
 	Meter          metric.Meter
 	MeterProvider  *sdkmetric.MeterProvider
 	TracerProvider *sdktrace.TracerProvider
-	CustomMetrics  *CustomMetrics
-}
-
-type CustomMetrics struct {
-	RequestCounter metric.Int64Counter
-	ErrorsCounter  metric.Int64Counter
 }
 
 // New создает новый экземпляр телеметрии.
@@ -81,20 +75,6 @@ func New(cfg *config.TelemertyConfig, logger *slog.Logger) (*Telemetry, error) {
 	// Создаем meter
 	meter := meterProvider.Meter(cfg.ServiceName)
 
-	// Создаем кастомные метрики
-	requestCounter, _ := meter.Int64Counter(
-		"requests_total",
-		metric.WithDescription("Total number of requests"),
-	)
-	errorsCounter, _ := meter.Int64Counter(
-		"errors_total",
-		metric.WithDescription("Total number of errors"),
-	)
-	customMetrics := &CustomMetrics{
-		RequestCounter: requestCounter,
-		ErrorsCounter:  errorsCounter,
-	}
-
 	telemetry := &Telemetry{
 		Config:         cfg,
 		Logger:         logger,
@@ -102,8 +82,9 @@ func New(cfg *config.TelemertyConfig, logger *slog.Logger) (*Telemetry, error) {
 		Meter:          meter,
 		MeterProvider:  meterProvider,
 		TracerProvider: tracerProvider,
-		CustomMetrics:  customMetrics,
 	}
+
+	// Создаем кастомные метрики
 
 	return telemetry, nil
 }
@@ -114,7 +95,7 @@ func createResource(cfg *config.TelemertyConfig) *resource.Resource {
 		semconv.SchemaURL,
 		semconv.ServiceName(cfg.ServiceName),
 		semconv.ServiceVersion(cfg.ServiceVersion),
-		semconv.ServiceNamespace("order-service"),
+		semconv.ServiceNamespace("menu-service"),
 	)
 }
 

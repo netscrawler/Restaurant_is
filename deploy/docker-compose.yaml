@@ -116,15 +116,9 @@ services:
       - CONFIG_PATH=/gate/config/config.docker.yaml
     volumes:
       - ./config/gate:/gate/config
-    # depends_on:
-    #   auth_service:
-    #     condition: service_healthy
-    #   menu_service:
-    #     condition: service_healthy
-    #   order_service:
-    #     condition: service_healthy
-    #   user_service:
-    #     condition: service_healthy
+    depends_on:
+      user_db:
+        condition: service_healthy
     networks:
       - risp
     logging:
@@ -359,7 +353,6 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     depends_on:
       - loki
-      - prometheus
     networks:
       - risp
     logging:
@@ -462,8 +455,6 @@ services:
       - "14250:14250" # OTLP gRPC receiver
     environment:
       - COLLECTOR_OTLP_ENABLED=true
-    depends_on:
-      - otel-collector
     networks:
       - risp
     logging:

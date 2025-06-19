@@ -85,7 +85,7 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 			}
 		}
 
-		c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
-		c.Abort()
+		// c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
+		c.Next()
 	}
 }

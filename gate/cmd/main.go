@@ -201,6 +201,7 @@ func main() {
 		{
 			// User management
 			admin.GET("/users", userHandler.ListUsers)
+			admin.POST("/image", menuHandler.GetUploadURL)
 			admin.POST("/users", userHandler.CreateUser)
 			admin.PUT("/users/:id", userHandler.UpdateUser)
 			admin.DELETE("/users/:id", userHandler.DeleteUser)

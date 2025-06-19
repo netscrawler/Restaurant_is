@@ -132,7 +132,7 @@ func (d *dishPgRepo) GetByFilter(
 		Where(squirrel.Eq{"is_available": filter.OnlyAvailable})
 
 	if filter.CategoryID != nil {
-		query = query.Where(squirrel.Eq{"category_id": *filter.CategoryID})
+		query = query.Where(squirrel.Eq{"category_id": filter.CategoryID})
 	}
 
 	if filter.OnlyAvailable {

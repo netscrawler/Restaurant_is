@@ -36,17 +36,20 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 
 	// Обработка category_id
 	if v := c.Query("category_id"); v != "" {
-		req.CategoryId, err = processCategoryID(v)
-		if err != nil {
-			e := &queryError{}
-			ok := errors.As(err, &e)
-			c.JSON(e.Code, gin.H{
-				"error":   e.Err,
-				"details": e.Desc,
-			})
-
-			return
-		}
+		// req.CategoryId, err = processCategoryID(v)
+		// if err != nil {
+		// 	e := &queryError{}
+		// 	_ = errors.As(err, &e)
+		// 	c.JSON(e.Code, gin.H{
+		// 		"error":   e.Err,
+		// 		"details": e.Desc,
+		// 	})
+		//
+		// 	return
+		// }
+		val, _ := strconv.Atoi(v)
+		vall := int32(val)
+		req.CategoryId = &vall
 	}
 
 	// Обработка only_available
@@ -59,7 +62,7 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 		req.Page, err = processPage(v)
 		if err != nil {
 			e := &queryError{}
-			ok := errors.As(err, &e)
+			_ = errors.As(err, &e)
 			c.JSON(e.Code, gin.H{
 				"error":   e.Err,
 				"details": e.Desc,
@@ -74,7 +77,7 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 		req.PageSize, err = processPageSize(v)
 		if err != nil {
 			e := &queryError{}
-			ok := errors.As(err, &e)
+			_ = errors.As(err, &e)
 			c.JSON(e.Code, gin.H{
 				"error":   e.Err,
 				"details": e.Desc,
@@ -232,6 +235,18 @@ func isDigitsOnly(s string) bool {
 	}
 
 	return true
+}
+
+func (h *MenuHandler) GetUploadURL(c *gin.Context) {
+	var req menuv1.ImageRequest
+
+	resp, err := h.menuClient.GenerateUploadURL(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }
 
 func (h *MenuHandler) CreateDish(c *gin.Context) {

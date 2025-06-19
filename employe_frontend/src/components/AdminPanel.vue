@@ -108,54 +108,27 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const staffList = ref([])
+const staffList = ref([
+  { id: '1', work_email: 'admin@site.com', position: 'Администратор', roles: ['admin'] },
+  { id: '2', work_email: 'staff@site.com', position: 'Официант', roles: ['staff'] }
+])
 const showAddStaff = ref(false)
 const newStaff = ref({ work_email: '', position: '', roles: '' })
-
-async function fetchStaff() {
-  try {
-    const token = localStorage.getItem('access_token')
-    const res = await fetch('http://localhost:8080/api/v1/admin/staff', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    if (!res.ok) throw new Error('Ошибка загрузки сотрудников')
-    const data = await res.json()
-    staffList.value = data.staff || []
-  } catch (e) {
-    alert('Ошибка загрузки сотрудников: ' + e.message)
-  }
-}
-
-async function addStaff() {
-  try {
-    const token = localStorage.getItem('access_token')
-    const res = await fetch('http://localhost:8080/api/v1/admin/staff', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        work_email: newStaff.value.work_email,
-        position: newStaff.value.position,
-        roles: newStaff.value.roles.split(',').map(r => r.trim())
-      })
-    })
-    if (!res.ok) throw new Error('Ошибка добавления сотрудника')
-    await fetchStaff()
-    newStaff.value = { work_email: '', position: '', roles: '' }
-    showAddStaff.value = false
-  } catch (e) {
-    alert('Ошибка добавления сотрудника: ' + e.message)
-  }
+function addStaff() {
+  staffList.value.push({
+    id: String(Date.now()),
+    work_email: newStaff.value.work_email,
+    position: newStaff.value.position,
+    roles: newStaff.value.roles.split(',').map(r => r.trim())
+  })
+  newStaff.value = { work_email: '', position: '', roles: '' }
+  showAddStaff.value = false
 }
 
 onMounted(() => {
   const token = localStorage.getItem('access_token')
   if (!token) {
     router.replace('/login')
-  } else {
-    fetchStaff()
   }
 })
 

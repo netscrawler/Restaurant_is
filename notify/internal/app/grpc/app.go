@@ -8,6 +8,7 @@ import (
 
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -47,6 +48,7 @@ func New(log *zap.Logger, notifyService notifygrpc.NotifySender, port int) *App 
 	}
 
 	gRPCServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			grpc_zap.UnaryServerInterceptor(log, logOpts...),
 			recovery.UnaryServerInterceptor(recoveryOpts...),

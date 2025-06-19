@@ -8,6 +8,7 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	authgrpc "github.com/netscrawler/Restaurant_is/auth/internal/infra/in/grpc"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 )
@@ -27,6 +28,7 @@ func New(
 	port int,
 ) *App {
 	gRPCServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.ChainUnaryInterceptor(
 			UnaryLoggingInterceptor(log),
 			recovery.UnaryServerInterceptor(),

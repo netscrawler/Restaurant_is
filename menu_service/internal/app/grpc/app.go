@@ -11,6 +11,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	menugrpc "github.com/netscrawler/Restaurant_is/menu_service/internal/infra/in/grpc/menu"
 	"github.com/netscrawler/Restaurant_is/menu_service/internal/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -53,15 +54,17 @@ func New(
 	metricsInterceptor := createMetricsInterceptor(telemetry.CustomMetrics)
 
 	// Создаем tracing interceptor
-	tracingInterceptor := createTracingInterceptor(telemetry.Tracer)
+	// tracingInterceptor := createTracingInterceptor(telemetry.Tracer)
 
-	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		recovery.UnaryServerInterceptor(recoveryOpts...),
-		// logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
-		UnaryLoggingInterceptor(log),
-		tracingInterceptor,
-		metricsInterceptor,
-	))
+	gRPCServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(recoveryOpts...),
+			// logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
+			UnaryLoggingInterceptor(log),
+			// tracingInterceptor,
+			metricsInterceptor,
+		))
 
 	menugrpc.Register(gRPCServer, dishService, imageService)
 

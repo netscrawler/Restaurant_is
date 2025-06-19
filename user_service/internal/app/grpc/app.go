@@ -6,16 +6,17 @@ import (
 	"log/slog"
 	"net"
 
+	service "user_service/internal/domain/app"
+	usergrpc "user_service/internal/infra/in/grpc"
+	"user_service/internal/telemetry"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
-	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	service "user_service/internal/domain/app"
-	usergrpc "user_service/internal/infra/in/grpc"
-	"user_service/internal/telemetry"
 )
 
 type App struct {
@@ -50,15 +51,17 @@ func New(
 	}
 
 	gRPCServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+
 		grpc.StatsHandler(otelgrpc.NewServerHandler()), grpc.ChainUnaryInterceptor(
 			recovery.UnaryServerInterceptor(recoveryOpts...),
 			UnaryLoggingInterceptor(log),
 
 			// logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
 		),
-		grpc.ChainStreamInterceptor(
-			otelgrpc.StreamServerInterceptor(),
-		),
+		// grpc.ChainStreamInterceptor(
+		// 	otelgrpc.StreamServerInterceptor(),
+		// ),
 	)
 
 	usergrpc.Register(gRPCServer, userAppService, staffAppService, roleAppService)

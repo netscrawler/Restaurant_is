@@ -48,6 +48,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/netscrawler/RispProtos/proto v0.0.0-20250618123428-62608da459ef
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0
 	go.uber.org/zap v1.27.0
 	gopkg.in/telebot.v4 v4.0.0-beta.5
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -66,8 +66,8 @@ services:
     image: ghcr.io/netscrawler/restaurant_is-order_service:latest
     container_name: order_service
     ports:
-      - "50051:50051" # gRPC port
-      - "10005:10005" # gRPC port
+      - "50051:50051"
+      - "10005:10005"
     environment:
       - CONFIG_PATH=/order/config/config.docker.yaml
     volumes:
@@ -137,10 +137,51 @@ services:
       POSTGRES_DB: user
     ports:
       - "5439:5439"
-    command: ["postgres", "-c", "port=5439"]
+    command:
+      [
+        "postgres",
+        "-c",
+        "port=5439",
+        "-c",
+        "wal_level=logical",
+        "-c",
+        "max_wal_senders=10",
+        "-c",
+        "max_replication_slots=10",
+      ]
     volumes:
-      - ./migrations/user/pg/init.sql:/docker-entrypoint-initdb.d:ro
+      - ./migrations/user/pg/init.sql/:/docker-entrypoint-initdb.d/:ro
       - user-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5439"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  user_db_replica:
+    image: postgres:latest
+    container_name: user_db_replica
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user
+    ports:
+      - "5440:5439"
+    command: ["postgres", "-c", "port=5439", "-c", "wal_level=logical"]
+    volumes:
+      - ./migrations/user/pg/init.sql/:/docker-entrypoint-initdb.d/:ro
+      - user-postgres-data-replica:/var/lib/postgresql/data
+    depends_on:
+      user_db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5439"]
       interval: 5s
@@ -164,10 +205,51 @@ services:
       POSTGRES_DB: auth
     ports:
       - "5432:5432"
-    command: ["postgres", "-c", "port=5432"]
+    command:
+      [
+        "postgres",
+        "-c",
+        "port=5432",
+        "-c",
+        "wal_level=logical",
+        "-c",
+        "max_wal_senders=10",
+        "-c",
+        "max_replication_slots=10",
+      ]
     volumes:
       - ./migrations/auth/pg/init.sql/:/docker-entrypoint-initdb.d:ro
       - auth-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  auth_db_replica:
+    image: postgres:latest
+    container_name: auth_db_replica
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth
+    ports:
+      - "5433:5432"
+    command: ["postgres", "-c", "port=5432", "-c", "wal_level=logical"]
+    volumes:
+      - ./migrations/auth/pg/init.sql/:/docker-entrypoint-initdb.d:ro
+      - auth-postgres-data-replica:/var/lib/postgresql/data
+    depends_on:
+      auth_db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5432"]
       interval: 5s
@@ -191,10 +273,51 @@ services:
       POSTGRES_DB: menu
     ports:
       - "5434:5434"
-    command: ["postgres", "-c", "port=5434"]
+    command:
+      [
+        "postgres",
+        "-c",
+        "port=5434",
+        "-c",
+        "wal_level=logical",
+        "-c",
+        "max_wal_senders=10",
+        "-c",
+        "max_replication_slots=10",
+      ]
     volumes:
       - ./migrations/menu/pg/init.sql/:/docker-entrypoint-initdb.d:ro
       - menu-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5434"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  menu_db_replica:
+    image: postgres:latest
+    container_name: menu_db_replica
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: menu
+    ports:
+      - "5436:5434"
+    command: ["postgres", "-c", "port=5434", "-c", "wal_level=logical"]
+    volumes:
+      - ./migrations/menu/pg/init.sql/:/docker-entrypoint-initdb.d:ro
+      - menu-postgres-data-replica:/var/lib/postgresql/data
+    depends_on:
+      menu_db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5434"]
       interval: 5s
@@ -218,12 +341,80 @@ services:
       POSTGRES_DB: order
     ports:
       - "5435:5435"
-    command: ["postgres", "-c", "port=5435"]
+    command:
+      [
+        "postgres",
+        "-c",
+        "port=5435",
+        "-c",
+        "wal_level=logical",
+        "-c",
+        "max_wal_senders=10",
+        "-c",
+        "max_replication_slots=10",
+      ]
     volumes:
-      - ./migrations/order/pg/init.sql:/docker-entrypoint-initdb.d:ro
+      - ./migrations/order/pg/init.sql/:/docker-entrypoint-initdb.d:ro
       - order-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -p 5435"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  order_db_replica:
+    image: postgres:latest
+    container_name: order_db_replica
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: order
+    ports:
+      - "5437:5435"
+    command: ["postgres", "-c", "port=5435", "-c", "wal_level=logical"]
+    volumes:
+      - ./migrations/order/pg/init.sql/:/docker-entrypoint-initdb.d:ro
+      # - ./migrations/order/pg/replica/replica_setup.sql:/docker-entrypoint-initdb.d/02-replica_setup.sql
+      - order-postgres-data-replica:/var/lib/postgresql/data
+    depends_on:
+      order_db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5435"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - risp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  metabase-db:
+    image: postgres:15
+    container_name: metabase-db
+    environment:
+      POSTGRES_USER: metabase
+      POSTGRES_PASSWORD: metabase123
+      POSTGRES_DB: metabase
+    ports:
+      - "5438:5438"
+    command: ["postgres", "-c", "port=5438"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metabase -p 5438"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -362,25 +553,6 @@ services:
         max-file: "3"
     restart: unless-stopped
 
-  metabase-db:
-    image: postgres:15
-    container_name: metabase-db
-    environment:
-      POSTGRES_DB: metabase
-      POSTGRES_USER: metabase
-      POSTGRES_PASSWORD: metabase123
-    command: ["postgres", "-c", "port=5438"]
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - risp
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped
-
   metabase:
     image: metabase/metabase:latest
     container_name: metabase
@@ -411,9 +583,9 @@ services:
     volumes:
       - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317" # OTLP gRPC
-      - "4318:4318" # OTLP HTTP
-      - "8889:8889" # Prometheus metrics
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
     logging:
       driver: json-file
       options:
@@ -423,7 +595,6 @@ services:
       - risp
     restart: unless-stopped
 
-  # Prometheus - для метрик
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -451,8 +622,8 @@ services:
     image: jaegertracing/all-in-one:1.56
     container_name: jaeger
     ports:
-      - "16686:16686" # UI
-      - "14250:14250" # OTLP gRPC receiver
+      - "16686:16686"
+      - "14250:14250"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     networks:
@@ -464,12 +635,56 @@ services:
         max-file: "3"
     restart: unless-stopped
 
+  subscription_setup_auth:
+    image: postgres:17
+    depends_on:
+      - auth_db
+    volumes:
+      - ./migrations/auth/pg/setup_subscription.sh:/setup_subscription.sh:ro
+    entrypoint: ["bash", "/setup_subscription.sh"]
+    environment:
+      - PGPASSWORD=replicator_password
+
+  subscription_setup_menu:
+    image: postgres:17
+    depends_on:
+      - menu_db
+    volumes:
+      - ./migrations/menu/pg/setup_subscription.sh:/setup_subscription.sh:ro
+    entrypoint: ["bash", "/setup_subscription.sh"]
+    environment:
+      - PGPASSWORD=replicator_password
+
+  subscription_setup_order:
+    image: postgres:17
+    depends_on:
+      - order_db
+    volumes:
+      - ./migrations/order/pg/setup_subscription.sh:/setup_subscription.sh:ro
+    entrypoint: ["bash", "/setup_subscription.sh"]
+    environment:
+      - PGPASSWORD=replicator_password
+
+  subscription_setup_user:
+    image: postgres:17
+    depends_on:
+      - user_db
+    volumes:
+      - ./migrations/user/pg/setup_subscription.sh:/setup_subscription.sh:ro
+    entrypoint: ["bash", "/setup_subscription.sh"]
+    environment:
+      - PGPASSWORD=replicator_password
+
 volumes:
   prometheus_data:
   auth-postgres-data:
+  auth-postgres-data-replica:
   menu-postgres-data:
+  menu-postgres-data-replica:
   order-postgres-data:
+  order-postgres-data-replica:
   user-postgres-data:
+  user-postgres-data-replica:
   minio-data:
   zookeeper-data:
   loki-data:

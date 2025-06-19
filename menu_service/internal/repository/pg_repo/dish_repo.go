@@ -214,6 +214,9 @@ func (d *dishPgRepo) Update(ctx context.Context, dish *dto.Dish) error {
 	if dish.Calories != 0 {
 		updateMap["calories"] = dish.Calories
 	}
+	if dish.IsAvailable {
+		updateMap["is_available"] = dish.IsAvailable
+	}
 
 	sql, args, err := d.storage.Builder.Update(dishTable).
 		SetMap(updateMap).

@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -61,11 +62,32 @@ func healthCheck(c *gin.Context) {
 		c.Request = c.Request.WithContext(ctx)
 	}
 
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
 		"service": "gate",
 		"version": "1.0.0",
 	})
+}
+
+func setupTelemetry(cfg *config.TelemertyConfig, logger *slog.Logger) func(ctx context.Context) {
+	// Инициализация телеметрии
+	telemetryObj, err := telemetry.New(cfg, logger)
+	if err != nil {
+		panic(err)
+	}
+
+	metr := metricsapp.New(logger, telemetryObj, cfg.MetricsPort)
+
+	go func() {
+		metr.MustRun()
+	}()
+
+	return func(ctx context.Context) {
+		err := telemetryObj.Shutdown(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func main() {
@@ -97,17 +119,8 @@ func main() {
 	menuHandler := handlers.NewMenuHandler(grpcClients.MenuClient)
 	orderHandler := handlers.NewOrderHandler(grpcClients.OrderClient)
 
-	// Инициализация телеметрии
-	telemetryObj, err := telemetry.New(&cfg.Telemetry, slog.Default())
-	if err != nil {
-		log.Fatalf("failed to init telemetry: %v", err)
-	}
-	defer telemetryObj.Shutdown(context.Background())
-
-	metr := metricsapp.New(logger, telemetryObj, cfg.Telemetry.MetricsPort)
-	go func() {
-		metr.MustRun()
-	}()
+	teleShutdown := setupTelemetry(&cfg.Telemetry, logger)
+	defer teleShutdown(context.Background())
 
 	// Инициализация gin
 	r := gin.Default()
@@ -125,18 +138,6 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
-
-	// Endpoint для Prometheus метрик на отдельном порту
-	// go func() {
-	// 	metricsAddr := fmt.Sprintf(":%d", cfg.Telemetry.MetricsPort)
-	// 	mux := http.NewServeMux()
-	// 	mux.Handle("/metrics", promhttp.Handler())
-	// 	log.Printf("Starting metrics server on %s", metricsAddr)
-	//
-	// 	if err := http.ListenAndServe(metricsAddr, mux); err != nil {
-	// 		log.Fatalf("Failed to start metrics server: %v", err)
-	// 	}
-	// }()
 
 	// Health check
 	r.GET("/health", healthCheck)
@@ -227,14 +228,14 @@ func main() {
 	go func() {
 		<-quit
 		log.Println("Shutting down server...")
-		telemetryObj.Shutdown(context.Background())
+		teleShutdown(context.Background())
 		os.Exit(0)
 	}()
 
 	log.Printf("Starting server on %s:%d", cfg.Server.Host, cfg.Server.Port)
 
 	if err := r.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		panic(err)
 	}
 }
 

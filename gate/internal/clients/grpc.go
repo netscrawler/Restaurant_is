@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,6 +13,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var ErrNoAdress = errors.New("no address configured for service")
+
+const minIdleTimeOut = 5 * time.Second
 
 type GRPCClients struct {
 	AuthClient  authv1.AuthClient
@@ -34,13 +39,13 @@ func NewGRPCClients(config map[string]string) (*GRPCClients, error) {
 	for _, service := range services {
 		address := config[service]
 		if address == "" {
-			return nil, fmt.Errorf("no address configured for service: %s", service)
+			return nil, fmt.Errorf("%w : %s", ErrNoAdress, service)
 		}
 
 		conn, err := grpc.NewClient(
 			address,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithIdleTimeout(5*time.Second),
+			grpc.WithIdleTimeout(minIdleTimeOut),
 
 			grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		)

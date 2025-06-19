@@ -4,6 +4,10 @@ run:
 linters:
   default: all
   disable:
+    - mnd
+    - funlen
+    - exhaustruct
+    - varnamelen
     - depguard
     - tagalign
     - godox

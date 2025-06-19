@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// responseBodyWriter перехватывает и сохраняет body ответа
+// responseBodyWriter перехватывает и сохраняет body ответа.
 type responseBodyWriter struct {
 	gin.ResponseWriter
 	body *bytes.Buffer
@@ -18,6 +18,7 @@ type responseBodyWriter struct {
 
 func (w responseBodyWriter) Write(b []byte) (int, error) {
 	w.body.Write(b)
+
 	return w.ResponseWriter.Write(b)
 }
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// ParseRSAPrivateKey принимает срез байтов с данными PEM и возвращает RSA приватный ключ
+// ParseRSAPrivateKey принимает срез байтов с данными PEM и возвращает RSA приватный ключ.
 func ParseRSAPrivateKey(pemData []byte) (*rsa.PrivateKey, error) {
 	pemData = []byte(strings.TrimSpace(string(pemData)))
 
@@ -37,7 +37,7 @@ func ParseRSAPrivateKey(pemData []byte) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-// ParseRSAPublicKey принимает срез байтов с данными PEM и возвращает RSA публичный ключ
+// ParseRSAPublicKey принимает срез байтов с данными PEM и возвращает RSA публичный ключ.
 func ParseRSAPublicKey(pemData []byte) (*rsa.PublicKey, error) {
 	pemData = []byte(strings.TrimSpace(string(pemData)))
 
@@ -51,10 +51,12 @@ func ParseRSAPublicKey(pemData []byte) (*rsa.PublicKey, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		pub, ok := pubIfc.(*rsa.PublicKey)
 		if !ok {
 			return nil, errors.New("not an RSA public key")
 		}
+
 		return pub, nil
 	}
 

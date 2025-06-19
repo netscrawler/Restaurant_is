@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Staff представляет доменную модель сотрудника
+// Staff представляет доменную модель сотрудника.
 type Staff struct {
 	ID        uuid.UUID `json:"id"`
 	WorkEmail string    `json:"work_email"`
@@ -17,9 +17,10 @@ type Staff struct {
 	HireDate  time.Time `json:"hire_date"`
 }
 
-// NewStaff создает нового сотрудника
+// NewStaff создает нового сотрудника.
 func NewStaff(workEmail, workPhone, fullName, position string) *Staff {
 	now := time.Now()
+
 	return &Staff{
 		ID:        uuid.New(),
 		WorkEmail: workEmail,
@@ -31,22 +32,23 @@ func NewStaff(workEmail, workPhone, fullName, position string) *Staff {
 	}
 }
 
-// Update обновляет данные сотрудника
+// Update обновляет данные сотрудника.
 func (s *Staff) Update(workPhone, position string) {
 	if workPhone != "" {
 		s.WorkPhone = workPhone
 	}
+
 	if position != "" {
 		s.Position = position
 	}
 }
 
-// Deactivate деактивирует сотрудника
+// Deactivate деактивирует сотрудника.
 func (s *Staff) Deactivate() {
 	s.IsActive = false
 }
 
-// Activate активирует сотрудника
+// Activate активирует сотрудника.
 func (s *Staff) Activate() {
 	s.IsActive = true
 }

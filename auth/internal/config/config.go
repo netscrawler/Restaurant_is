@@ -13,14 +13,15 @@ import (
 )
 
 type Config struct {
-	Env          string         `yaml:"env"          env:"ENV"                env-default:"local"`
-	DB           DatabaseConfig `yaml:"db"           env:"DATABASE_CONFIG"`
-	GRPCServer   gRPC           `yaml:"grpcServer"   env:"GRPC_SERVER_CONFIG"`
-	YandexOAuth  YandexOAuth    `yaml:"yandexOAuth"  env:"YANDEX_O_AUTH"`
-	JWT          JWTConfig      `yaml:"jwt"`
-	JWTRaw       JWTConfigRaw   `yaml:"jwtRAW"`
-	CodeLife     time.Duration  `yaml:"codeLife"                              env-default:"5m"`
-	NotifyClient NotifyClient   `yaml:"notifyClient"`
+	Env          string          `yaml:"env"          env:"ENV"                env-default:"local"`
+	DB           DatabaseConfig  `yaml:"db"           env:"DATABASE_CONFIG"`
+	GRPCServer   gRPC            `yaml:"grpcServer"   env:"GRPC_SERVER_CONFIG"`
+	YandexOAuth  YandexOAuth     `yaml:"yandexOAuth"  env:"YANDEX_O_AUTH"`
+	JWT          JWTConfig       `yaml:"jwt"`
+	JWTRaw       JWTConfigRaw    `yaml:"jwtRAW"`
+	CodeLife     time.Duration   `yaml:"codeLife"                              env-default:"5m"`
+	NotifyClient NotifyClient    `yaml:"notifyClient"`
+	Telemetry    TelemertyConfig `yaml:"telemetry"`
 }
 
 type DatabaseConfig struct {
@@ -70,6 +71,14 @@ type JWTConfigRaw struct {
 	AccessTTL         time.Duration `yaml:"accessTtl"`
 	RefreshTTL        time.Duration `yaml:"refreshTtl"`
 	Issuer            string        `yaml:"issuer"`
+}
+
+type TelemertyConfig struct {
+	ServiceName    string `yaml:"serviceName"    env:"SERVICE_NAME"`
+	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
+	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
+	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 func MustLoad() *Config {
@@ -135,6 +144,7 @@ func NewJWTConfig(raw JWTConfigRaw, out *JWTConfig) error {
 	if err != nil {
 		return fmt.Errorf("ошибка чтения файла с PrivateKey: %w", err)
 	}
+
 	priv, err := pkg.ParseRSAPrivateKey(privData)
 	if err != nil {
 		return fmt.Errorf("ошибка парсинга PrivateKey: %w", err)
@@ -145,6 +155,7 @@ func NewJWTConfig(raw JWTConfigRaw, out *JWTConfig) error {
 	if err != nil {
 		return fmt.Errorf("ошибка чтения файла с PublicKey: %w", err)
 	}
+
 	pub, err := pkg.ParseRSAPublicKey(pubData)
 	if err != nil {
 		return fmt.Errorf("ошибка парсинга PublicKey: %w", err)
@@ -155,6 +166,7 @@ func NewJWTConfig(raw JWTConfigRaw, out *JWTConfig) error {
 	if err != nil {
 		return fmt.Errorf("ошибка чтения файла с RefreshPrivateKey: %w", err)
 	}
+
 	refreshPriv, err := pkg.ParseRSAPrivateKey(refreshPrivData)
 	if err != nil {
 		return fmt.Errorf("ошибка парсинга RefreshPrivateKey: %w", err)
@@ -165,6 +177,7 @@ func NewJWTConfig(raw JWTConfigRaw, out *JWTConfig) error {
 	if err != nil {
 		return fmt.Errorf("ошибка чтения файла с RefreshPublicKey: %w", err)
 	}
+
 	refreshPub, err := pkg.ParseRSAPublicKey(refreshPubData)
 	if err != nil {
 		return fmt.Errorf("ошибка парсинга RefreshPublicKey: %w", err)

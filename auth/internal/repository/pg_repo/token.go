@@ -2,18 +2,18 @@ package pgrepo
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
-	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
 )
 
 type pgToken struct {
-	log *zap.Logger
+	log *slog.Logger
 	db  *postgres.Storage
 }
 
-func NewPgToken(db *postgres.Storage, log *zap.Logger) *pgToken {
+func NewPgToken(db *postgres.Storage, log *slog.Logger) *pgToken {
 	return &pgToken{
 		log: log,
 		db:  db,

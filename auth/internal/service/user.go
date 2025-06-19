@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
-	"go.uber.org/zap"
 )
 
 type UserService struct {
 	clientRepo repository.ClientRepository
 	staffRepo  repository.StaffRepository
-	log        *zap.Logger
+	log        *slog.Logger
 	ntf        NotifySender
 }
 
@@ -22,7 +22,7 @@ func NewUserService(
 	client repository.ClientRepository,
 	staff repository.StaffRepository,
 	notify NotifySender,
-	log *zap.Logger,
+	log *slog.Logger,
 ) *UserService {
 	return &UserService{
 		clientRepo: client,
@@ -67,14 +67,18 @@ func (u *UserService) DeactivateStaff(ctx context.Context, email string) (*model
 	if err != nil && !errors.Is(err, domain.ErrNotFound) {
 		return nil, domain.ErrInternal
 	}
+
 	if errors.Is(err, domain.ErrNotFound) {
 		return nil, domain.ErrNotFound
 	}
+
 	err = u.staffRepo.DeactivateStaff(ctx, email)
 	if err != nil {
 		return nil, domain.ErrInternal
 	}
+
 	staff.IsActive = false
+
 	return staff, nil
 }
 

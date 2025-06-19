@@ -4,21 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
-	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
 )
 
 type pgOauth struct {
-	log *zap.Logger
+	log *slog.Logger
 	db  *postgres.Storage
 }
 
-func NewPgOauth(db *postgres.Storage, log *zap.Logger) *pgOauth {
+func NewPgOauth(db *postgres.Storage, log *slog.Logger) *pgOauth {
 	return &pgOauth{
 		log: log,
 		db:  db,
@@ -38,14 +38,14 @@ func (p *pgOauth) LinkAccount(
 		Values(clientID, provider.Provider, provider.ProviderID, provider.AccessToken, provider.ExpiresAt).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+" failed to build SQL query", zap.Error(err))
+		p.log.Error(op+" failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+" failed to execute SQL query", zap.Error(err))
+		p.log.Error(op+" failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
@@ -66,7 +66,7 @@ func (p *pgOauth) GetByProvider(
 		Where(squirrel.Eq{"provider": provider, "provider_id": providerID}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+" failed to build SQL query", zap.Error(err))
+		p.log.Error(op+" failed to build SQL query", slog.Any("error", err))
 
 		return nil, fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
@@ -86,14 +86,14 @@ func (p *pgOauth) GetByProvider(
 		if errors.Is(err, pgx.ErrNoRows) {
 			p.log.Info(
 				op+" OAuth provider not found",
-				zap.String("provider", provider),
-				zap.String("providerID", providerID),
+				slog.String("provider", provider),
+				slog.String("providerID", providerID),
 			)
 
 			return nil, domain.ErrNotFound
 		}
 
-		p.log.Error(op+" failed to scan row", zap.Error(err))
+		p.log.Error(op+" failed to scan row", slog.Any("error", err))
 
 		return nil, fmt.Errorf("%w %w", domain.ErrScanRow, err)
 	}
@@ -109,14 +109,14 @@ func (p *pgOauth) UnlinkAccount(ctx context.Context, clientID string, provider s
 		Where(squirrel.Eq{"client_id": clientID, "provider": provider}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+" failed to build SQL query", zap.Error(err))
+		p.log.Error(op+" failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+" failed to execute SQL query", zap.Error(err))
+		p.log.Error(op+" failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}

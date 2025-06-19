@@ -50,7 +50,14 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	staffAppService := application.NewStaffAppService(staffService)
 	roleAppService := application.NewRoleAppService(roleService)
 
-	grpc := grpcapp.New(log, userAppService, staffAppService, roleAppService, cfg.GRPCServer.Port, telemetryInstance)
+	grpc := grpcapp.New(
+		log,
+		userAppService,
+		staffAppService,
+		roleAppService,
+		cfg.GRPCServer.Port,
+		telemetryInstance,
+	)
 
 	health := health.New(
 		[]func() error{
@@ -59,7 +66,7 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 			},
 		},
 		cfg.GRPCServer.Address,
-		strconv.Itoa(cfg.GRPCServer.Port+1),
+		strconv.Itoa(cfg.GRPCServer.Port+100),
 	)
 
 	return &App{

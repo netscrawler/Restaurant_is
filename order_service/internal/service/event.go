@@ -33,6 +33,7 @@ func NewEventService(
 	log *slog.Logger,
 ) *Event {
 	l := log.With(slog.String("worker", "event"))
+
 	return &Event{
 		repo:           repo,
 		publisher:      publisher,
@@ -45,9 +46,10 @@ func (s *Event) SaveEvent(ctx context.Context, event *repository.Event) error {
 	return s.repo.Save(ctx, event)
 }
 
-// StartBackgroundProcessing starts asynchronous processing of unpublished events
+// StartBackgroundProcessing starts asynchronous processing of unpublished events.
 func (s *Event) StartBackgroundProcessing(ctx context.Context) {
 	s.log.Info("starting background", slog.Any("process timeout", s.processTimeout))
+
 	go func() {
 		ticker := time.NewTicker(s.processTimeout)
 		defer ticker.Stop()

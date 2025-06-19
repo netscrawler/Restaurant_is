@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-// CustomMetrics содержит кастомные метрики для бизнес-логики
+// CustomMetrics содержит кастомные метрики для бизнес-логики.
 type CustomMetrics struct {
 	// Счетчики
 	dishCreatedCounter metric.Int64Counter
@@ -25,7 +25,7 @@ type CustomMetrics struct {
 	activeDishesGauge metric.Int64UpDownCounter
 }
 
-// NewCustomMetrics создает новые кастомные метрики
+// NewCustomMetrics создает новые кастомные метрики.
 func (t *Telemetry) NewCustomMetrics() *CustomMetrics {
 	// Счетчики
 	dishCreatedCounter, _ := t.Meter.Int64Counter(
@@ -92,29 +92,33 @@ func (t *Telemetry) NewCustomMetrics() *CustomMetrics {
 	}
 }
 
-// RecordDishCreated записывает метрику создания блюда
+// RecordDishCreated записывает метрику создания блюда.
 func (cm *CustomMetrics) RecordDishCreated(ctx context.Context, categoryID int32) {
 	cm.dishCreatedCounter.Add(ctx, 1, metric.WithAttributes(
 		attribute.Int("category_id", int(categoryID)),
 	))
 }
 
-// RecordDishUpdated записывает метрику обновления блюда
+// RecordDishUpdated записывает метрику обновления блюда.
 func (cm *CustomMetrics) RecordDishUpdated(ctx context.Context, categoryID int32) {
 	cm.dishUpdatedCounter.Add(ctx, 1, metric.WithAttributes(
 		attribute.Int("category_id", int(categoryID)),
 	))
 }
 
-// RecordDishDeleted записывает метрику удаления блюда
+// RecordDishDeleted записывает метрику удаления блюда.
 func (cm *CustomMetrics) RecordDishDeleted(ctx context.Context, categoryID int32) {
 	cm.dishDeletedCounter.Add(ctx, 1, metric.WithAttributes(
 		attribute.Int("category_id", int(categoryID)),
 	))
 }
 
-// RecordDishListed записывает метрику запроса списка блюд
-func (cm *CustomMetrics) RecordDishListed(ctx context.Context, categoryID *int32, onlyAvailable bool) {
+// RecordDishListed записывает метрику запроса списка блюд.
+func (cm *CustomMetrics) RecordDishListed(
+	ctx context.Context,
+	categoryID *int32,
+	onlyAvailable bool,
+) {
 	attrs := []attribute.KeyValue{
 		attribute.Bool("only_available", onlyAvailable),
 	}
@@ -125,27 +129,39 @@ func (cm *CustomMetrics) RecordDishListed(ctx context.Context, categoryID *int32
 	cm.dishListedCounter.Add(ctx, 1, metric.WithAttributes(attrs...))
 }
 
-// RecordDishCreateDuration записывает время создания блюда
-func (cm *CustomMetrics) RecordDishCreateDuration(ctx context.Context, duration float64, categoryID int32) {
+// RecordDishCreateDuration записывает время создания блюда.
+func (cm *CustomMetrics) RecordDishCreateDuration(
+	ctx context.Context,
+	duration float64,
+	categoryID int32,
+) {
 	cm.dishCreateDuration.Record(ctx, duration, metric.WithAttributes(
 		attribute.Int("category_id", int(categoryID)),
 	))
 }
 
-// RecordDishUpdateDuration записывает время обновления блюда
-func (cm *CustomMetrics) RecordDishUpdateDuration(ctx context.Context, duration float64, categoryID int32) {
+// RecordDishUpdateDuration записывает время обновления блюда.
+func (cm *CustomMetrics) RecordDishUpdateDuration(
+	ctx context.Context,
+	duration float64,
+	categoryID int32,
+) {
 	cm.dishUpdateDuration.Record(ctx, duration, metric.WithAttributes(
 		attribute.Int("category_id", int(categoryID)),
 	))
 }
 
-// RecordDishGetDuration записывает время получения блюда
+// RecordDishGetDuration записывает время получения блюда.
 func (cm *CustomMetrics) RecordDishGetDuration(ctx context.Context, duration float64) {
 	cm.dishGetDuration.Record(ctx, duration)
 }
 
-// RecordDishListDuration записывает время получения списка блюд
-func (cm *CustomMetrics) RecordDishListDuration(ctx context.Context, duration float64, categoryID *int32) {
+// RecordDishListDuration записывает время получения списка блюд.
+func (cm *CustomMetrics) RecordDishListDuration(
+	ctx context.Context,
+	duration float64,
+	categoryID *int32,
+) {
 	attrs := []attribute.KeyValue{}
 	if categoryID != nil {
 		attrs = append(attrs, attribute.Int("category_id", int(*categoryID)))
@@ -154,7 +170,7 @@ func (cm *CustomMetrics) RecordDishListDuration(ctx context.Context, duration fl
 	cm.dishListDuration.Record(ctx, duration, metric.WithAttributes(attrs...))
 }
 
-// SetActiveDishesCount устанавливает количество активных блюд
+// SetActiveDishesCount устанавливает количество активных блюд.
 func (cm *CustomMetrics) SetActiveDishesCount(ctx context.Context, count int64) {
 	cm.activeDishesGauge.Add(ctx, count)
 }

@@ -78,14 +78,14 @@ func (s *serverAPI) UpdateDish(
 
 	dishUpdate := dto.NewUpdateDishReq(
 		dishID,
-		in.Name,
-		in.Description,
-		in.Price,
-		in.CategoryId,
-		in.CookingTimeMin,
-		in.ImageUrl,
-		in.IsAvailable,
-		in.Calories,
+		in.GetName(),
+		in.GetDescription(),
+		in.GetPrice(),
+		in.GetCategoryId(),
+		in.GetCookingTimeMin(),
+		in.GetImageUrl(),
+		in.GetIsAvailable(),
+		in.GetCalories(),
 	)
 
 	dish, err := s.dish.Update(ctx, dishUpdate)
@@ -119,6 +119,7 @@ func (s *serverAPI) GetDish(
 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+
 	return &menuv1.DishResponse{
 		Dish: dish.ToGRPCDto(),
 	}, nil
@@ -129,10 +130,10 @@ func (s *serverAPI) ListDishes(
 	in *menuv1.ListDishesRequest,
 ) (*menuv1.ListDishesResponse, error) {
 	req := dto.NewListDishReq(
-		in.CategoryId,
-		in.OnlyAvailable,
-		in.Page,
-		in.PageSize,
+		in.GetCategoryId(),
+		in.GetOnlyAvailable(),
+		in.GetPage(),
+		in.GetPageSize(),
 	)
 
 	dishes, err := s.dish.List(ctx, req)

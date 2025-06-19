@@ -4,25 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"user_service/internal/domain/service"
-
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"user_service/internal/domain/service"
 )
 
-// StaffAppService представляет application сервис для работы с сотрудниками
+// StaffAppService представляет application сервис для работы с сотрудниками.
 type StaffAppService struct {
 	staffService *service.StaffService
 }
 
-// NewStaffAppService создает новый экземпляр StaffAppService
+// NewStaffAppService создает новый экземпляр StaffAppService.
 func NewStaffAppService(staffService *service.StaffService) *StaffAppService {
 	return &StaffAppService{
 		staffService: staffService,
 	}
 }
 
-// CreateStaffRequest представляет запрос на создание сотрудника
+// CreateStaffRequest представляет запрос на создание сотрудника.
 type CreateStaffRequest struct {
 	WorkEmail string
 	WorkPhone string
@@ -31,7 +30,7 @@ type CreateStaffRequest struct {
 	Password  string
 }
 
-// CreateStaffResponse представляет ответ на создание сотрудника
+// CreateStaffResponse представляет ответ на создание сотрудника.
 type CreateStaffResponse struct {
 	ID        int64
 	WorkEmail string
@@ -43,7 +42,7 @@ type CreateStaffResponse struct {
 	Roles     []string
 }
 
-// CreateStaff создает нового сотрудника
+// CreateStaff создает нового сотрудника.
 func (s *StaffAppService) CreateStaff(
 	ctx context.Context,
 	req *CreateStaffRequest,
@@ -71,7 +70,7 @@ func (s *StaffAppService) CreateStaff(
 	}, nil
 }
 
-// UpdateStaffRequest представляет запрос на обновление сотрудника
+// UpdateStaffRequest представляет запрос на обновление сотрудника.
 type UpdateStaffRequest struct {
 	ID        int64
 	WorkPhone *string
@@ -79,7 +78,7 @@ type UpdateStaffRequest struct {
 	IsActive  *bool
 }
 
-// UpdateStaffResponse представляет ответ на обновление сотрудника
+// UpdateStaffResponse представляет ответ на обновление сотрудника.
 type UpdateStaffResponse struct {
 	ID        int64
 	WorkEmail string
@@ -91,7 +90,7 @@ type UpdateStaffResponse struct {
 	Roles     []string
 }
 
-// UpdateStaff обновляет данные сотрудника
+// UpdateStaff обновляет данные сотрудника.
 func (s *StaffAppService) UpdateStaff(
 	ctx context.Context,
 	req *UpdateStaffRequest,
@@ -125,20 +124,20 @@ func (s *StaffAppService) UpdateStaff(
 	}, nil
 }
 
-// ListStaffRequest представляет запрос на получение списка сотрудников
+// ListStaffRequest представляет запрос на получение списка сотрудников.
 type ListStaffRequest struct {
 	OnlyActive bool
 	Page       int32
 	PageSize   int32
 }
 
-// ListStaffResponse представляет ответ на получение списка сотрудников
+// ListStaffResponse представляет ответ на получение списка сотрудников.
 type ListStaffResponse struct {
 	Staff      []*CreateStaffResponse
 	TotalCount int32
 }
 
-// ListStaff возвращает список сотрудников
+// ListStaff возвращает список сотрудников.
 func (s *StaffAppService) ListStaff(
 	ctx context.Context,
 	req *ListStaffRequest,

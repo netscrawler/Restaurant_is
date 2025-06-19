@@ -4,21 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
-	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 )
 
 type pgStaff struct {
-	log *zap.Logger
+	log *slog.Logger
 	db  *postgres.Storage
 }
 
-func NewPgStaff(db *postgres.Storage, log *zap.Logger) *pgStaff {
+func NewPgStaff(db *postgres.Storage, log *slog.Logger) *pgStaff {
 	return &pgStaff{
 		log: log,
 		db:  db,
@@ -27,6 +28,8 @@ func NewPgStaff(db *postgres.Storage, log *zap.Logger) *pgStaff {
 
 func (p *pgStaff) CreateStaff(ctx context.Context, staff *models.Staff) error {
 	const op = "repository.pg.Staff.Create"
+
+	log := utils.LoggerWithTrace(ctx, p.log)
 
 	query, args, err := p.db.Builder.
 		Insert("staff").
@@ -42,14 +45,14 @@ func (p *pgStaff) CreateStaff(ctx context.Context, staff *models.Staff) error {
 		Values(staff.ID, staff.WorkEmail, staff.PasswordHash, staff.Position, staff.IsActive, staff.NeedChangePassword, staff.CreatedAt, staff.UpdatedAt).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
@@ -59,6 +62,8 @@ func (p *pgStaff) CreateStaff(ctx context.Context, staff *models.Staff) error {
 
 func (p *pgStaff) GetStaffByEmail(ctx context.Context, workEmail string) (*models.Staff, error) {
 	const op = "repository.pg.Staff.GetStaffByEmail"
+
+	log := utils.LoggerWithTrace(ctx, p.log)
 
 	query, args, err := p.db.Builder.
 		Select(
@@ -75,7 +80,7 @@ func (p *pgStaff) GetStaffByEmail(ctx context.Context, workEmail string) (*model
 		Where(squirrel.Eq{"work_email": workEmail}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return nil, fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
@@ -96,11 +101,12 @@ func (p *pgStaff) GetStaffByEmail(ctx context.Context, workEmail string) (*model
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			p.log.Info(op+"staff not found", zap.String("work_email", workEmail))
+			log.Info(op+"staff not found", slog.String("work_email", workEmail))
+
 			return nil, domain.ErrNotFound
 		}
 
-		p.log.Error(op+"failed to scan row", zap.Error(err))
+		log.Error(op+"failed to scan row", slog.Any("error", err))
 
 		return nil, fmt.Errorf("%w (%w)", domain.ErrScanRow, err)
 	}
@@ -122,13 +128,15 @@ func (p *pgStaff) UpdateStaff(ctx context.Context, staff *models.Staff) error {
 		Where(squirrel.Eq{"id": staff.ID}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+" failed to build SQL query", zap.Error(err))
+		p.log.Error(op+" failed to build SQL query", slog.Any("error", err))
+
 		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	res, err := p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+" failed to execute SQL query", zap.Error(err))
+		p.log.Error(op+" failed to execute SQL query", slog.Any("error", err))
+
 		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}
 
@@ -149,14 +157,14 @@ func (p *pgStaff) UpdateStaffPassword(ctx context.Context, workEmail string, new
 		Where(squirrel.Eq{"work_email": workEmail}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		p.log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		p.log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}
@@ -167,25 +175,27 @@ func (p *pgStaff) UpdateStaffPassword(ctx context.Context, workEmail string, new
 func (p *pgStaff) DeactivateStaff(ctx context.Context, workEmail string) error {
 	const op = "repository.pg.Staff.DeactivateStaff"
 
+	log := utils.LoggerWithTrace(ctx, p.log)
+
 	query, args, err := p.db.Builder.Update("staff").
 		Set("is_active", false).
 		Set("updated_at", "NOW()").
 		Where(squirrel.Eq{"work_email": workEmail}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}
 
-	p.log.Info(op+"staff deactivated", zap.String("work_email", workEmail))
+	log.Info(op+"staff deactivated", slog.String("work_email", workEmail))
 
 	return nil
 }

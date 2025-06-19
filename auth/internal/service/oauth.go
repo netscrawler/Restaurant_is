@@ -46,10 +46,12 @@ func (s *OAuthService) HandleCallback(
 	}
 
 	client := s.config.Client(ctx, token)
+
 	resp, err := client.Get("https://login.yandex.ru/info")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user info: %w", err)
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -71,5 +73,6 @@ func (s *OAuthService) GetAuthURL(provider string) (string, error) {
 	}
 
 	authURL := s.config.AuthCodeURL("state", oauth2.AccessTypeOffline)
+
 	return authURL, nil
 }

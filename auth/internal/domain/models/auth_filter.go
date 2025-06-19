@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// AuthFilter представляет фильтр для поиска событий аутентификации
+// AuthFilter представляет фильтр для поиска событий аутентификации.
 type AuthFilter struct {
 	UserID    *uuid.UUID       `json:"userId,omitempty"`
 	UserType  *UserType        `json:"userType,omitempty"`

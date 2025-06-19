@@ -3,19 +3,20 @@ package pgrepo
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
-	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 )
 
 type pgAudit struct {
-	log *zap.Logger
+	log *slog.Logger
 	db  *postgres.Storage
 }
 
-func NewPgAudit(db *postgres.Storage, log *zap.Logger) *pgAudit {
+func NewPgAudit(db *postgres.Storage, log *slog.Logger) *pgAudit {
 	return &pgAudit{
 		log: log,
 		db:  db,
@@ -24,6 +25,8 @@ func NewPgAudit(db *postgres.Storage, log *zap.Logger) *pgAudit {
 
 func (p *pgAudit) LogAuthEvent(ctx context.Context, event *models.AuthEvent) error {
 	const op = "repository.pg.Audit.LogAuthEvent"
+
+	log := utils.LoggerWithTrace(ctx, p.log)
 
 	query, args, err := p.db.Builder.
 		Insert("auth_logs").
@@ -45,14 +48,14 @@ func (p *pgAudit) LogAuthEvent(ctx context.Context, event *models.AuthEvent) err
 		).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+" error build sql", zap.Error(err))
+		log.Error(op+" error build sql", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+" error insert log event", zap.Error(err))
+		log.Error(op+" error insert log event", slog.Any("error", err))
 
 		return fmt.Errorf("%w (%w)", domain.ErrExecQuery, err)
 	}

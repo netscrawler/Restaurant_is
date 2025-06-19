@@ -12,27 +12,27 @@ scrape_configs:
       - targets: ["localhost:9090"]
   - job_name: "auth_service"
     static_configs:
-      - targets: ["auth_service:54821"]
+      - targets: ["auth_service:10001"]
     metrics_path: "/metrics"
     scrape_interval: 10s
   - job_name: "notify"
     static_configs:
-      - targets: ["notify:54822"]
+      - targets: ["notify:10004"]
     metrics_path: "/metrics"
     scrape_interval: 10s
   - job_name: "menu_service"
     static_configs:
-      - targets: ["menu_service:50052"]
+      - targets: ["menu_service:10003"]
     metrics_path: "/metrics"
     scrape_interval: 10s
   - job_name: "order_service"
     static_configs:
-      - targets: ["order_service:50051"]
+      - targets: ["order_service:10005"]
     metrics_path: "/metrics"
     scrape_interval: 10s
   - job_name: "user_service"
     static_configs:
-      - targets: ["user_service:50045"]
+      - targets: ["user_service:10006"]
     metrics_path: "/metrics"
     scrape_interval: 10s
   - job_name: "gate"
@@ -45,38 +45,3 @@ scrape_configs:
       - targets: ["otel-collector:8889"] # Изменено с 8888 на 8889
     metrics_path: "/metrics"
     scrape_interval: 10s
-  - job_name: "user_db"
-    static_configs:
-      - targets: ["user_db:5439"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s
-  - job_name: "auth_db"
-    static_configs:
-      - targets: ["auth_db:5432"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s
-  - job_name: "menu_db"
-    static_configs:
-      - targets: ["menu_db:5434"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s
-  - job_name: "order_db"
-    static_configs:
-      - targets: ["order_db:5435"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s
-  - job_name: "minio"
-    static_configs:
-      - targets: ["minio:9000"]
-    metrics_path: "/minio/v2/metrics/cluster"
-    scrape_interval: 30s
-  - job_name: "kafka"
-    static_configs:
-      - targets: ["kafka:9404"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s
-  - job_name: "zookeeper"
-    static_configs:
-      - targets: ["zookeeper:9404"]
-    metrics_path: "/metrics"
-    scrape_interval: 30s

@@ -2,22 +2,22 @@ package pgrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"user_service/internal/domain"
-	"user_service/internal/domain/models"
-	"user_service/internal/storage/postgres"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"user_service/internal/domain"
+	"user_service/internal/domain/models"
+	"user_service/internal/storage/postgres"
 )
 
 type userRepository struct {
 	db *postgres.Storage
 }
 
-// NewUserRepository создает новый экземпляр UserRepository
+// NewUserRepository создает новый экземпляр UserRepository.
 func NewUserRepository(db *postgres.Storage) *userRepository {
 	return &userRepository{db: db}
 }
@@ -77,6 +77,7 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Use
 	}
 
 	var user models.User
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&user.ID,
 		&user.Email,
@@ -87,9 +88,10 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Use
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
@@ -116,6 +118,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 	}
 
 	var user models.User
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&user.ID,
 		&user.Email,
@@ -126,9 +129,10 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
@@ -155,6 +159,7 @@ func (r *userRepository) GetByPhone(ctx context.Context, phone string) (*models.
 	}
 
 	var user models.User
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&user.ID,
 		&user.Email,
@@ -165,9 +170,10 @@ func (r *userRepository) GetByPhone(ctx context.Context, phone string) (*models.
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get user by phone: %w", err)
 	}
 
@@ -259,8 +265,10 @@ func (r *userRepository) List(
 	defer rows.Close()
 
 	var users []*models.User
+
 	for rows.Next() {
 		var user models.User
+
 		err := rows.Scan(
 			&user.ID,
 			&user.Email,
@@ -273,6 +281,7 @@ func (r *userRepository) List(
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan user: %w", err)
 		}
+
 		users = append(users, &user)
 	}
 
@@ -298,6 +307,7 @@ func (r *userRepository) Count(ctx context.Context, onlyActive bool) (int, error
 	}
 
 	var count int
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count users: %w", err)

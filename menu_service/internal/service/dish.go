@@ -36,8 +36,10 @@ func NewDishService(repo DishRepository, imageProvider ImageURLProvider) *Dish {
 func (d *Dish) Create(ctx context.Context, dish *dto.Dish) (*dto.Dish, error) {
 	// Если есть objectKey в ImageURL, генерируем URL для скачивания
 	var downloadURL string
+
 	if dish.ImageURL != "" {
 		var err error
+
 		downloadURL, err = d.imageProvider.GetDownloadURL(ctx, dish.ImageURL)
 		if err != nil {
 			return nil, err
@@ -48,6 +50,7 @@ func (d *Dish) Create(ctx context.Context, dish *dto.Dish) (*dto.Dish, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	dish.ImageURL = downloadURL
 
 	return dish, nil
@@ -65,6 +68,7 @@ func (d *Dish) Get(ctx context.Context, dishID uuid.UUID) (*dto.Dish, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		dish.ImageURL = downloadURL
 	}
 
@@ -80,24 +84,31 @@ func (d *Dish) Update(ctx context.Context, req *dto.UpdateDishReq) (*dto.Dish, e
 	if req.Name != nil {
 		existingDish.Name = *req.Name
 	}
+
 	if req.Description != nil {
 		existingDish.Description = *req.Description
 	}
+
 	if req.Price != nil {
 		existingDish.Price = *req.Price
 	}
+
 	if req.CategoryID != nil {
 		existingDish.CategoryID = *req.CategoryID
 	}
+
 	if req.CookingTimeMin != nil {
 		existingDish.CookingTimeMin = *req.CookingTimeMin
 	}
+
 	if req.ImageURL != nil {
 		existingDish.ImageURL = *req.ImageURL
 	}
+
 	if req.IsAvailable != nil {
 		existingDish.IsAvailable = *req.IsAvailable
 	}
+
 	if req.Calories != nil {
 		existingDish.Calories = *req.Calories
 	}
@@ -106,11 +117,13 @@ func (d *Dish) Update(ctx context.Context, req *dto.UpdateDishReq) (*dto.Dish, e
 	if err != nil {
 		return nil, err
 	}
+
 	if existingDish.ImageURL != "" {
 		downloadURL, err := d.imageProvider.GetDownloadURL(ctx, existingDish.ImageURL)
 		if err != nil {
 			return nil, err
 		}
+
 		existingDish.ImageURL = downloadURL
 	}
 
@@ -131,8 +144,10 @@ func (d *Dish) List(ctx context.Context, filter *dto.ListDishFilter) ([]dto.Dish
 			if err != nil {
 				return nil, err
 			}
+
 			dish.ImageURL = downloadURL
 		}
+
 		editedDishes = append(editedDishes, dish)
 	}
 

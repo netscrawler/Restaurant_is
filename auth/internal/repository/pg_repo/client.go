@@ -4,21 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
-	"github.com/netscrawler/Restaurant_is/auth/internal/storage/postgres"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/infra/out/postgres"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 )
 
 type pgClient struct {
-	log *zap.Logger
+	log *slog.Logger
 	db  *postgres.Storage
 }
 
-func NewPgClient(db *postgres.Storage, log *zap.Logger) *pgClient {
+func NewPgClient(db *postgres.Storage, log *slog.Logger) *pgClient {
 	return &pgClient{
 		log: log,
 		db:  db,
@@ -28,17 +29,19 @@ func NewPgClient(db *postgres.Storage, log *zap.Logger) *pgClient {
 func (p *pgClient) CreateClient(ctx context.Context, client *models.Client) error {
 	const op = "repository.pg.Client.Create"
 
+	log := utils.LoggerWithTrace(ctx, p.log)
+
 	query, args, err := p.db.Builder.Insert("clients").Columns("id", "phone").
 		Values(client.ID, client.Phone).ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
@@ -48,6 +51,8 @@ func (p *pgClient) CreateClient(ctx context.Context, client *models.Client) erro
 
 func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.Client, error) {
 	const op = "repository.pg.Client.GetByPhone"
+
+	log := utils.LoggerWithTrace(ctx, p.log)
 
 	query, args, err := p.db.Builder.Select(
 		"id",
@@ -60,7 +65,7 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 		ToSql()
 	if err != nil {
 		wrapErr := fmt.Errorf("%w, %w", domain.ErrBuildQuery, err)
-		p.log.Error(op+"failed to build SQL query", zap.Error(wrapErr))
+		log.Error(op+"failed to build SQL query", slog.Any("error", wrapErr))
 
 		return nil, wrapErr
 	}
@@ -77,12 +82,12 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			p.log.Info(op+"client not found", zap.String("phone", phone))
+			log.Info(op+"client not found", slog.String("phone", phone))
 
 			return nil, domain.ErrNotFound
 		}
 
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return nil, fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
@@ -93,24 +98,26 @@ func (p *pgClient) GetClientByPhone(ctx context.Context, phone string) (*models.
 func (p *pgClient) DeactivateClient(ctx context.Context, phone string) error {
 	const op = "repository.pg.Client.DeactivateClient"
 
+	log := utils.LoggerWithTrace(ctx, p.log)
+
 	query, args, err := p.db.Builder.Update("clients").
 		Set("is_active", false).
 		Where(squirrel.Eq{"phone": phone}).
 		ToSql()
 	if err != nil {
-		p.log.Error(op+"failed to build SQL query", zap.Error(err))
+		log.Error(op+"failed to build SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrBuildQuery, err)
 	}
 
 	_, err = p.db.DB.Exec(ctx, query, args...)
 	if err != nil {
-		p.log.Error(op+"failed to execute SQL query", zap.Error(err))
+		log.Error(op+"failed to execute SQL query", slog.Any("error", err))
 
 		return fmt.Errorf("%w %w", domain.ErrExecQuery, err)
 	}
 
-	p.log.Info(op+"client deactivated", zap.String("email", phone))
+	log.Info(op+"client deactivated", slog.String("email", phone))
 
 	return nil
 }

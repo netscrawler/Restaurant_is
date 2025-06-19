@@ -34,6 +34,7 @@ type Dish struct {
 func NewOrder(o *domain.Order) *Order {
 	domainDishes := o.Dishes()
 	dishes := make([]DishQuantity, len(domainDishes))
+
 	for i, d := range domainDishes {
 		dishes[i] = DishQuantity{
 			DishID:   d.Dish,

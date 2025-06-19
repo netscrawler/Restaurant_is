@@ -76,6 +76,7 @@ func generatePassword(length int, useSymbols bool) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		password[i] = charset[num.Int64()]
 	}
 
@@ -84,6 +85,7 @@ func generatePassword(length int, useSymbols bool) (string, error) {
 
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
 	return string(hash), err
 }
 
@@ -101,6 +103,7 @@ func NewStaff(email, position string) (*Staff, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("%w (%w)", domain.ErrGeneratePassword, err)
 	}
+
 	return &Staff{
 		ID:                 uuid.New(),
 		WorkEmail:          email,

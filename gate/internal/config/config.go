@@ -92,6 +92,7 @@ func fetchConfigPath() string {
 
 func (c *Config) GetServiceAddress(service string) string {
 	var serviceConfig ServiceConfig
+
 	switch service {
 	case "auth":
 		serviceConfig = c.Services.Auth
@@ -104,5 +105,6 @@ func (c *Config) GetServiceAddress(service string) string {
 	default:
 		return ""
 	}
+
 	return fmt.Sprintf("%s:%d", serviceConfig.Host, serviceConfig.Port)
 }

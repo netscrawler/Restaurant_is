@@ -3,7 +3,7 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 	"strconv"
 	"time"
@@ -80,8 +80,9 @@ func New(
 			}
 			defer cancel()
 			if !minioStorage.IsOnline() {
-				return fmt.Errorf("minio not available")
+				return errors.New("minio not available")
 			}
+
 			return nil
 		},
 	}, cfg.GRPCServer.Address, strconv.Itoa(cfg.GRPCServer.Port+100))

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
-	"go.uber.org/zap"
 )
 
 type NotifySender interface {
@@ -25,7 +25,7 @@ type CodeProvider interface {
 }
 
 type AuthService struct {
-	log          *zap.Logger
+	log          *slog.Logger
 	clientRepo   repository.ClientRepository
 	staffRepo    repository.StaffRepository
 	notify       NotifySender
@@ -34,7 +34,7 @@ type AuthService struct {
 }
 
 func NewAuthService(
-	log *zap.Logger,
+	log *slog.Logger,
 	clientRepo repository.ClientRepository,
 	staffRepo repository.StaffRepository,
 	notifySender NotifySender,
@@ -54,11 +54,13 @@ func NewAuthService(
 func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 	const op = "service.Auth.LoginInit"
 
+	log := utils.LoggerWithTrace(ctx, a.log)
+
 	user, err := a.clientRepo.GetClientByPhone(ctx, phone)
 
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
-		a.log.Info(op+"not found client, creating new", zap.String("phone", phone))
+		log.Info(op+"not found client, creating new", slog.String("phone", phone))
 		user = models.NewClient(phone)
 
 		err = a.clientRepo.CreateClient(ctx, user)
@@ -77,9 +79,10 @@ func (a *AuthService) LoginClientInit(ctx context.Context, phone string) error {
 
 func (a *AuthService) genAndSend(ctx context.Context, u *models.Client) {
 	go func(ctx context.Context, u *models.Client) {
+		log := utils.LoggerWithTrace(ctx, a.log)
 		code, err := utils.GenerateSecureCode()
 		if err != nil {
-			a.log.Error("error generate secure token", zap.Error(err))
+			log.Error("error generate secure token", slog.Any("error", err))
 		}
 
 		a.codeProvider.Set(u.ID, code)
@@ -93,6 +96,8 @@ func (a *AuthService) LoginClientConfirm(
 	code string,
 ) (string, int64, string, int64, *models.Client, error) {
 	const op = "service.Auth.LoginClientConfirm"
+
+	log := utils.LoggerWithTrace(ctx, a.log)
 
 	codeInt, err := strconv.Atoi(code)
 	if err != nil {
@@ -112,7 +117,7 @@ func (a *AuthService) LoginClientConfirm(
 	storedCode, exists := a.codeProvider.Get(user.ID)
 
 	if !exists || storedCode != codeInt {
-		a.log.Info(op+" Invalid code", zap.Any("user", user), zap.Int("code", codeInt))
+		log.Info(op+" Invalid code", slog.Any("user", user), slog.Int("code", codeInt))
 
 		return "", 0, "", 0, nil, domain.ErrInvalidCode
 	}
@@ -135,15 +140,19 @@ func (a *AuthService) LoginStaff(
 	password string,
 ) (string, int64, string, int64, *models.Staff, error) {
 	const op = "service.Auth.LoginStaff"
-	log := a.log.With(zap.String("fn", op), zap.String("email", email))
+	log := utils.LoggerWithTrace(ctx, a.log).
+		With(slog.String("fn", op), slog.String("email", email))
 
 	user, err := a.staffRepo.GetStaffByEmail(ctx, email)
+
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
 		log.Info("user not found")
+
 		return "", 0, "", 0, nil, domain.ErrNotFound
 	case err != nil:
-		log.Info("internal error", zap.String("error", err.Error()))
+		log.Info("internal error", slog.Any("error", err))
+
 		return "", 0, "", 0, nil, domain.ErrInternal
 	default:
 	}
@@ -158,7 +167,8 @@ func (a *AuthService) LoginStaff(
 		user.WorkEmail,
 	)
 	if err != nil {
-		log.Info("error generating token pair", zap.String("error", err.Error()))
+		log.Info("error generating token pair", slog.Any("error", err))
+
 		return "", 0, "", 0, nil, domain.ErrInternal
 	}
 

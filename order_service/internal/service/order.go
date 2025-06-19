@@ -54,6 +54,7 @@ func (o *Order) Create(ctx context.Context, order *dto.OrderToCreate) (*dto.Orde
 	}
 
 	dishMap := make(domain.DishList)
+
 	for _, d := range dishes {
 		for _, item := range order.Items {
 			if d.ID == item.Item {
@@ -96,7 +97,6 @@ func (o *Order) UpdateStatus(ctx context.Context, orderID uuid.UUID, newStatus s
 	// if err != nil {
 	// 	return err
 	// }
-
 	// _, err = o.repo.Save(ctx, repository.NewOrder(order))
 	return nil
 }

@@ -2,28 +2,28 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"user_service/internal/domain/models"
-	"user_service/internal/domain/service"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"user_service/internal/domain/models"
+	"user_service/internal/domain/service"
 )
 
-// UserAppService представляет application сервис для работы с пользователями
+// UserAppService представляет application сервис для работы с пользователями.
 type UserAppService struct {
 	userService *service.UserService
 }
 
-// NewUserAppService создает новый экземпляр UserAppService
+// NewUserAppService создает новый экземпляр UserAppService.
 func NewUserAppService(userService *service.UserService) *UserAppService {
 	return &UserAppService{
 		userService: userService,
 	}
 }
 
-// CreateUserRequest представляет запрос на создание пользователя
+// CreateUserRequest представляет запрос на создание пользователя.
 type CreateUserRequest struct {
 	Email    string
 	Phone    string
@@ -31,7 +31,7 @@ type CreateUserRequest struct {
 	Password string
 }
 
-// CreateUserResponse представляет ответ на создание пользователя
+// CreateUserResponse представляет ответ на создание пользователя.
 type CreateUserResponse struct {
 	ID        int64
 	Email     string
@@ -43,7 +43,7 @@ type CreateUserResponse struct {
 	Roles     []string
 }
 
-// CreateUser создает нового пользователя
+// CreateUser создает нового пользователя.
 func (s *UserAppService) CreateUser(
 	ctx context.Context,
 	req *CreateUserRequest,
@@ -65,14 +65,14 @@ func (s *UserAppService) CreateUser(
 	}, nil
 }
 
-// GetUserRequest представляет запрос на получение пользователя
+// GetUserRequest представляет запрос на получение пользователя.
 type GetUserRequest struct {
 	ID    *int64
 	Email *string
 	Phone *string
 }
 
-// GetUserResponse представляет ответ на получение пользователя
+// GetUserResponse представляет ответ на получение пользователя.
 type GetUserResponse struct {
 	ID        int64
 	Email     string
@@ -84,12 +84,13 @@ type GetUserResponse struct {
 	Roles     []string
 }
 
-// GetUser получает пользователя по ID, email или телефону
+// GetUser получает пользователя по ID, email или телефону.
 func (s *UserAppService) GetUser(
 	ctx context.Context,
 	req *GetUserRequest,
 ) (*GetUserResponse, error) {
 	var user *models.User
+
 	var err error
 
 	if req.ID != nil {
@@ -101,7 +102,7 @@ func (s *UserAppService) GetUser(
 	} else if req.Phone != nil {
 		user, err = s.userService.GetUserByPhone(ctx, *req.Phone)
 	} else {
-		return nil, fmt.Errorf("no identifier provided")
+		return nil, errors.New("no identifier provided")
 	}
 
 	if err != nil {
@@ -120,7 +121,7 @@ func (s *UserAppService) GetUser(
 	}, nil
 }
 
-// UpdateUserRequest представляет запрос на обновление пользователя
+// UpdateUserRequest представляет запрос на обновление пользователя.
 type UpdateUserRequest struct {
 	ID       int64
 	Email    *string
@@ -129,7 +130,7 @@ type UpdateUserRequest struct {
 	IsActive *bool
 }
 
-// UpdateUserResponse представляет ответ на обновление пользователя
+// UpdateUserResponse представляет ответ на обновление пользователя.
 type UpdateUserResponse struct {
 	ID        int64
 	Email     string
@@ -141,7 +142,7 @@ type UpdateUserResponse struct {
 	Roles     []string
 }
 
-// UpdateUser обновляет данные пользователя
+// UpdateUser обновляет данные пользователя.
 func (s *UserAppService) UpdateUser(
 	ctx context.Context,
 	req *UpdateUserRequest,
@@ -180,31 +181,32 @@ func (s *UserAppService) UpdateUser(
 	}, nil
 }
 
-// DeleteUserRequest представляет запрос на удаление пользователя
+// DeleteUserRequest представляет запрос на удаление пользователя.
 type DeleteUserRequest struct {
 	ID int64
 }
 
-// DeleteUser удаляет пользователя
+// DeleteUser удаляет пользователя.
 func (s *UserAppService) DeleteUser(ctx context.Context, req *DeleteUserRequest) error {
 	userID := uuid.MustParse(fmt.Sprintf("%016x-0000-0000-0000-000000000000", req.ID))
+
 	return s.userService.DeleteUser(ctx, userID)
 }
 
-// ListUsersRequest представляет запрос на получение списка пользователей
+// ListUsersRequest представляет запрос на получение списка пользователей.
 type ListUsersRequest struct {
 	OnlyActive bool
 	Page       int32
 	PageSize   int32
 }
 
-// ListUsersResponse представляет ответ на получение списка пользователей
+// ListUsersResponse представляет ответ на получение списка пользователей.
 type ListUsersResponse struct {
 	Users      []*GetUserResponse
 	TotalCount int32
 }
 
-// ListUsers возвращает список пользователей
+// ListUsers возвращает список пользователей.
 func (s *UserAppService) ListUsers(
 	ctx context.Context,
 	req *ListUsersRequest,

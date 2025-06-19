@@ -9,6 +9,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	ordergrpc "github.com/netscrawler/Restaurant_is/order_service/internal/grpc/order"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,16 +27,6 @@ func New(
 	orderService ordergrpc.OrderProvider,
 	port int,
 ) *App {
-	loggingOpts := []logging.Option{
-		logging.WithLogOnEvents(
-			logging.StartCall, logging.FinishCall,
-			logging.PayloadReceived, logging.PayloadSent,
-		),
-		// Add any other option (check functions starting with logging.With).
-	}
-
-	log = log.With(slog.Any("server", "grpc"))
-
 	recoveryOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p any) (err error) {
 			log.Error("Recovered from panic", slog.Any("panic", p))
@@ -46,7 +37,7 @@ func New(
 
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
 		recovery.UnaryServerInterceptor(recoveryOpts...),
-		logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
+		UnaryLoggingInterceptor(log),
 	))
 
 	ordergrpc.Register(gRPCServer, orderService)
@@ -55,6 +46,41 @@ func New(
 		log:        log,
 		gRPCServer: gRPCServer,
 		port:       port,
+	}
+}
+
+func UnaryLoggingInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (resp any, err error) {
+		traceID := oteltrace.SpanContextFromContext(ctx).TraceID().String()
+		log.Info("REQ",
+			slog.String("method", info.FullMethod),
+			slog.Any("request", req),
+			slog.String("trace_id", traceID),
+		)
+
+		resp, err = handler(ctx, req)
+		if err != nil {
+			log.Error("REQ FAIL",
+				slog.String("method", info.FullMethod),
+				slog.Any("error", err),
+				slog.String("trace_id", traceID),
+			)
+
+			return resp, err
+		}
+
+		log.Info("RESP",
+			slog.String("method", info.FullMethod),
+			slog.Any("response", resp),
+			slog.String("trace_id", traceID),
+		)
+
+		return resp, err
 	}
 }
 

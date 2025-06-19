@@ -51,6 +51,7 @@ func NewOrder(
 	address string,
 ) (*Order, error) {
 	dishItems := make([]DishQuantity, 0, len(dishes))
+
 	var totalPrice uint64
 
 	for dish, quantity := range dishes {

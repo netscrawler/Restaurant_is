@@ -3,12 +3,11 @@ package repository
 import (
 	"context"
 
-	"user_service/internal/domain/models"
-
 	"github.com/google/uuid"
+	"user_service/internal/domain/models"
 )
 
-// RoleRepository определяет интерфейс для работы с ролями
+// RoleRepository определяет интерфейс для работы с ролями.
 type RoleRepository interface {
 	// Create создает новую роль
 	Create(ctx context.Context, role *models.Role) error
@@ -26,7 +25,7 @@ type RoleRepository interface {
 	List(ctx context.Context) ([]*models.Role, error)
 }
 
-// UserRoleRepository определяет интерфейс для работы с ролями пользователей
+// UserRoleRepository определяет интерфейс для работы с ролями пользователей.
 type UserRoleRepository interface {
 	// AssignRole назначает роль пользователю
 	AssignRole(ctx context.Context, userRole *models.UserRole) error

@@ -1,4 +1,4 @@
-env: "dev"
+env: "prod"
 
 db:
   type: "postgres"
@@ -19,5 +19,5 @@ telemetry:
   serviceName: "user-service"
   serviceVersion: "1.0.0"
   environment: "production"
-  metricsPort: 9095
+  metricsPort: 10006
   traceEndpoint: "jaeger:4317"

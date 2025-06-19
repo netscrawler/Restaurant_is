@@ -2,24 +2,24 @@ package pgrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"user_service/internal/domain"
-	"user_service/internal/domain/models"
-	"user_service/internal/domain/repository"
-	"user_service/internal/storage/postgres"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"user_service/internal/domain"
+	"user_service/internal/domain/models"
+	"user_service/internal/domain/repository"
+	"user_service/internal/storage/postgres"
 )
 
 type roleRepository struct {
 	db *postgres.Storage
 }
 
-// NewRoleRepository создает новый экземпляр RoleRepository
+// NewRoleRepository создает новый экземпляр RoleRepository.
 func NewRoleRepository(db *postgres.Storage) *roleRepository {
 	return &roleRepository{db: db}
 }
@@ -73,6 +73,7 @@ func (r *roleRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Rol
 	}
 
 	var role models.Role
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&role.ID,
 		&role.Name,
@@ -81,9 +82,10 @@ func (r *roleRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Rol
 		&role.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrRoleNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get role by ID: %w", err)
 	}
 
@@ -108,6 +110,7 @@ func (r *roleRepository) GetByName(ctx context.Context, name string) (*models.Ro
 	}
 
 	var role models.Role
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&role.ID,
 		&role.Name,
@@ -116,9 +119,10 @@ func (r *roleRepository) GetByName(ctx context.Context, name string) (*models.Ro
 		&role.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrRoleNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get role by name: %w", err)
 	}
 
@@ -174,8 +178,10 @@ func (r *roleRepository) List(ctx context.Context) ([]*models.Role, error) {
 	defer rows.Close()
 
 	var roles []*models.Role
+
 	for rows.Next() {
 		var role models.Role
+
 		err := rows.Scan(
 			&role.ID,
 			&role.Name,
@@ -186,6 +192,7 @@ func (r *roleRepository) List(ctx context.Context) ([]*models.Role, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan role: %w", err)
 		}
+
 		roles = append(roles, &role)
 	}
 
@@ -200,7 +207,7 @@ type userRoleRepository struct {
 	db *pgxpool.Pool
 }
 
-// NewUserRoleRepository создает новый экземпляр UserRoleRepository
+// NewUserRoleRepository создает новый экземпляр UserRoleRepository.
 func NewUserRoleRepository(db *pgxpool.Pool) repository.UserRoleRepository {
 	return &userRoleRepository{db: db}
 }
@@ -275,8 +282,10 @@ func (r *userRoleRepository) GetUserRoles(
 	defer rows.Close()
 
 	var roles []*models.Role
+
 	for rows.Next() {
 		var role models.Role
+
 		err := rows.Scan(
 			&role.ID,
 			&role.Name,
@@ -287,6 +296,7 @@ func (r *userRoleRepository) GetUserRoles(
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan role: %w", err)
 		}
+
 		roles = append(roles, &role)
 	}
 
@@ -309,6 +319,7 @@ func (r *userRoleRepository) HasRole(ctx context.Context, userID, roleID uuid.UU
 	}
 
 	var count int
+
 	err = r.db.QueryRow(ctx, sql, args...).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if user has role: %w", err)

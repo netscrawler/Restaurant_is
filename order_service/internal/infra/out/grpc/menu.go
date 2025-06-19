@@ -50,12 +50,15 @@ func (m *MenuClient) Get(ctx context.Context, dishes []uuid.UUID) ([]*dto.Dish, 
 	}
 
 	out := make(chan result, len(dishes))
+
 	var wg sync.WaitGroup
+
 	wg.Add(len(dishes))
 
 	for _, d := range dishes {
 		go func(d uuid.UUID) {
 			defer wg.Done()
+
 			dish, err := m.get(ctx, d)
 			out <- result{dish: dish, err: err}
 		}(d)
@@ -67,10 +70,12 @@ func (m *MenuClient) Get(ctx context.Context, dishes []uuid.UUID) ([]*dto.Dish, 
 	}()
 
 	dishList := make([]*dto.Dish, 0, len(dishes))
+
 	for r := range out {
 		if r.err != nil {
 			return nil, r.err
 		}
+
 		dishList = append(dishList, r.dish)
 	}
 
@@ -87,7 +92,11 @@ func (m *MenuClient) get(ctx context.Context, dish uuid.UUID) (*dto.Dish, error)
 		return nil, err
 	}
 
-	d, err := dto.NewDish(resp.GetDish().Id.Value, resp.GetDish().Name, resp.GetDish().Price)
+	d, err := dto.NewDish(
+		resp.GetDish().GetId().GetValue(),
+		resp.GetDish().GetName(),
+		resp.GetDish().GetPrice(),
+	)
 	if err != nil {
 		return nil, err
 	}

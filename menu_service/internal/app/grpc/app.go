@@ -41,10 +41,10 @@ func New(
 	// 	),
 	// 	// Add any other option (check functions starting with logging.With).
 	// }
-
 	recoveryOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p any) (err error) {
 			log.Error("Recovered from panic", slog.Any("panic", p))
+
 			return status.Errorf(grpccodes.Internal, "internal error")
 		}),
 	}
@@ -73,7 +73,7 @@ func New(
 	}
 }
 
-// createMetricsInterceptor создает interceptor для сбора метрик
+// createMetricsInterceptor создает interceptor для сбора метрик.
 func createMetricsInterceptor(metrics *telemetry.CustomMetrics) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -94,7 +94,7 @@ func createMetricsInterceptor(metrics *telemetry.CustomMetrics) grpc.UnaryServer
 	}
 }
 
-// recordBasicMetrics записывает базовые метрики без извлечения данных из запросов
+// recordBasicMetrics записывает базовые метрики без извлечения данных из запросов.
 func recordBasicMetrics(
 	metrics *telemetry.CustomMetrics,
 	method string,
@@ -107,12 +107,14 @@ func recordBasicMetrics(
 	case "/menu.MenuService/CreateDish":
 		// Записываем только время выполнения без category_id
 		metrics.RecordDishCreateDuration(ctx, duration, 0) // 0 как default category_id
+
 		if err == nil {
 			metrics.RecordDishCreated(ctx, 0)
 		}
 
 	case "/menu.MenuService/UpdateDish":
 		metrics.RecordDishUpdateDuration(ctx, duration, 0)
+
 		if err == nil {
 			metrics.RecordDishUpdated(ctx, 0)
 		}
@@ -143,26 +145,28 @@ func UnaryLoggingInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (resp any, err error) {
-		// Логируем входящий запрос (payload)
+		traceID := trace.SpanContextFromContext(ctx).TraceID().String()
 		log.Info("REQ",
 			slog.String("method", info.FullMethod),
 			slog.Any("request", req),
+			slog.String("trace_id", traceID),
 		)
 
-		// Вызываем основной обработчик
 		resp, err = handler(ctx, req)
-		// Логируем ответ и ошибку, если есть
 		if err != nil {
 			log.Error("REQ FAIL",
 				slog.String("method", info.FullMethod),
 				slog.Any("error", err),
+				slog.String("trace_id", traceID),
 			)
+
 			return resp, err
 		}
 
 		log.Info("RESP",
 			slog.String("method", info.FullMethod),
 			slog.Any("response", resp),
+			slog.String("trace_id", traceID),
 		)
 
 		return resp, err
@@ -211,7 +215,7 @@ func (a *App) Stop() {
 	a.gRPCServer.GracefulStop()
 }
 
-// Создаем tracing interceptor
+// Создаем tracing interceptor.
 func createTracingInterceptor(tracer trace.Tracer) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -219,19 +223,23 @@ func createTracingInterceptor(tracer trace.Tracer) grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (resp any, err error) {
-		// Получаем текущий span из контекста (если есть)
 		span := trace.SpanFromContext(ctx)
+		if !span.SpanContext().IsValid() {
+			var spanCtx context.Context
 
-		// Добавляем атрибуты к span
+			spanCtx, span = tracer.Start(ctx, info.FullMethod)
+			defer span.End()
+
+			ctx = spanCtx
+		}
+
 		span.SetAttributes(
 			attribute.String("grpc.method", info.FullMethod),
 			attribute.String("grpc.service", "menu.MenuService"),
 		)
 
-		// Вызываем основной обработчик
 		resp, err = handler(ctx, req)
 
-		// Добавляем информацию об ошибке к span
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())

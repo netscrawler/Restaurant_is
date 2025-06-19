@@ -2,22 +2,22 @@ package pgrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"user_service/internal/domain"
-	"user_service/internal/domain/models"
-	"user_service/internal/storage/postgres"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"user_service/internal/domain"
+	"user_service/internal/domain/models"
+	"user_service/internal/storage/postgres"
 )
 
 type staffRepository struct {
 	db *postgres.Storage
 }
 
-// NewStaffRepository создает новый экземпляр StaffRepository
+// NewStaffRepository создает новый экземпляр StaffRepository.
 func NewStaffRepository(db *postgres.Storage) *staffRepository {
 	return &staffRepository{db: db}
 }
@@ -77,6 +77,7 @@ func (r *staffRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.St
 	}
 
 	var staff models.Staff
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&staff.ID,
 		&staff.WorkEmail,
@@ -87,9 +88,10 @@ func (r *staffRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.St
 		&staff.HireDate,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrStaffNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get staff by ID: %w", err)
 	}
 
@@ -119,6 +121,7 @@ func (r *staffRepository) GetByWorkEmail(
 	}
 
 	var staff models.Staff
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(
 		&staff.ID,
 		&staff.WorkEmail,
@@ -129,9 +132,10 @@ func (r *staffRepository) GetByWorkEmail(
 		&staff.HireDate,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrStaffNotFound
 		}
+
 		return nil, fmt.Errorf("failed to get staff by work email: %w", err)
 	}
 
@@ -201,8 +205,10 @@ func (r *staffRepository) List(
 	defer rows.Close()
 
 	var staffList []*models.Staff
+
 	for rows.Next() {
 		var staff models.Staff
+
 		err := rows.Scan(
 			&staff.ID,
 			&staff.WorkEmail,
@@ -215,6 +221,7 @@ func (r *staffRepository) List(
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan staff: %w", err)
 		}
+
 		staffList = append(staffList, &staff)
 	}
 
@@ -240,6 +247,7 @@ func (r *staffRepository) Count(ctx context.Context, onlyActive bool) (int, erro
 	}
 
 	var count int
+
 	err = r.db.DB.QueryRow(ctx, sql, args...).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count staff: %w", err)

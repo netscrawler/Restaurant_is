@@ -3,12 +3,11 @@ package repository
 import (
 	"context"
 
-	"user_service/internal/domain/models"
-
 	"github.com/google/uuid"
+	"user_service/internal/domain/models"
 )
 
-// StaffRepository определяет интерфейс для работы с сотрудниками
+// StaffRepository определяет интерфейс для работы с сотрудниками.
 type StaffRepository interface {
 	// Create создает нового сотрудника
 	Create(ctx context.Context, staff *models.Staff) error

@@ -3,20 +3,21 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain/models"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
-	"go.uber.org/zap"
+	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
 )
 
 type AuditService struct {
 	auditRepo repository.AuditRepository
-	log       *zap.Logger
+	log       *slog.Logger
 }
 
-func NewAuditService(auditRepo repository.AuditRepository, log *zap.Logger) *AuditService {
+func NewAuditService(auditRepo repository.AuditRepository, log *slog.Logger) *AuditService {
 	return &AuditService{
 		auditRepo: auditRepo,
 		log:       log,
@@ -31,6 +32,8 @@ func (s *AuditService) LogEvent(
 	ipAddress, userAgent string,
 ) error {
 	const op = "service.audit.LogEvent"
+
+	log := utils.LoggerWithTrace(ctx, s.log)
 
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
@@ -47,7 +50,7 @@ func (s *AuditService) LogEvent(
 
 	err = s.auditRepo.LogAuthEvent(ctx, event)
 	if err != nil {
-		s.log.Info(op+"failed log event", zap.String("error", err.Error()))
+		log.Info(op+"failed log event", slog.Any("error", err))
 	}
 
 	return nil

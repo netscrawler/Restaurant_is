@@ -21,6 +21,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+
 		return
 	}
 
@@ -33,6 +34,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	resp, err := h.userClient.GetUser(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -43,12 +45,14 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+
 		return
 	}
 
 	var req userv1.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -57,6 +61,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	resp, err := h.userClient.UpdateUser(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -69,6 +74,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	resp, err := h.userClient.ListUsers(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -79,12 +85,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req userv1.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
 	resp, err := h.userClient.CreateUser(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -93,9 +101,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id := c.Param("id")
+
 	var req userv1.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -104,6 +114,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	resp, err := h.userClient.UpdateUser(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -120,6 +131,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	_, err := h.userClient.DeleteUser(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -132,6 +144,7 @@ func (h *UserHandler) ListStaff(c *gin.Context) {
 	resp, err := h.userClient.ListStaff(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -140,9 +153,11 @@ func (h *UserHandler) ListStaff(c *gin.Context) {
 
 func (h *UserHandler) UpdateStaff(c *gin.Context) {
 	id := c.Param("id")
+
 	var req userv1.UpdateStaffRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -151,6 +166,7 @@ func (h *UserHandler) UpdateStaff(c *gin.Context) {
 	resp, err := h.userClient.UpdateStaff(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -159,9 +175,11 @@ func (h *UserHandler) UpdateStaff(c *gin.Context) {
 
 func (h *UserHandler) AssignRole(c *gin.Context) {
 	id := c.Param("id")
+
 	var req userv1.AssignRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -170,6 +188,7 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 	_, err := h.userClient.AssignRole(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -178,9 +197,11 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 
 func (h *UserHandler) RevokeRole(c *gin.Context) {
 	id := c.Param("id")
+
 	var req userv1.RevokeRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -189,6 +210,7 @@ func (h *UserHandler) RevokeRole(c *gin.Context) {
 	_, err := h.userClient.RevokeRole(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 

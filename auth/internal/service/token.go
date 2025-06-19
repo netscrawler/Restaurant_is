@@ -3,23 +3,23 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/netscrawler/Restaurant_is/auth/internal/domain"
 	"github.com/netscrawler/Restaurant_is/auth/internal/repository"
 	"github.com/netscrawler/Restaurant_is/auth/internal/utils"
-	"go.uber.org/zap"
 )
 
 type TokenService struct {
 	tokenRepo  repository.TokenRepository
 	jwtManager *utils.JWTManager
-	log        *zap.Logger
+	log        *slog.Logger
 }
 
 func NewTokenService(
 	tokenRepo repository.TokenRepository,
 	jwtManager *utils.JWTManager,
-	log *zap.Logger,
+	log *slog.Logger,
 ) *TokenService {
 	return &TokenService{
 		tokenRepo:  tokenRepo,
@@ -32,8 +32,12 @@ func (t *TokenService) Verify(
 	ctx context.Context,
 	token string,
 ) (bool, string, string, string, error) {
+	log := utils.LoggerWithTrace(ctx, t.log)
+
 	cl, err := t.jwtManager.VerifyAccessToken(token)
 	if err != nil {
+		log.Error("invalid access token", slog.Any("error", err))
+
 		return false, "", "", "", fmt.Errorf("%w (%w)", domain.ErrInvalidCode, err)
 	}
 

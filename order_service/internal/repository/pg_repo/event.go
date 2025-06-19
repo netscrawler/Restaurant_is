@@ -31,6 +31,7 @@ func (e *PgEvent) Save(ctx context.Context, event *repository.Event) error {
 	}
 
 	_, err = e.storage.DB.Exec(ctx, sql, args...)
+
 	return err
 }
 
@@ -51,11 +52,13 @@ func (e *PgEvent) GetUnpublishedEvents(ctx context.Context) ([]*repository.Event
 	defer rows.Close()
 
 	var events []*repository.Event
+
 	for rows.Next() {
 		var event repository.Event
 		if err := rows.Scan(&event.ID, &event.Type, &event.Payload); err != nil {
 			return nil, err
 		}
+
 		events = append(events, &event)
 	}
 
@@ -73,5 +76,6 @@ func (e *PgEvent) MarkAsPublished(ctx context.Context, eventID string) error {
 	}
 
 	_, err = e.storage.DB.Exec(ctx, sql, args...)
+
 	return err
 }

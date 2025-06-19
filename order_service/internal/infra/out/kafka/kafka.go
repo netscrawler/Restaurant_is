@@ -42,6 +42,7 @@ func (k *KafkaPublisher) PublishEvent(ctx context.Context, event *dto.Event) err
 		logger.ErrorContext(ctx, "failed to marshal event",
 			slog.String("error", err.Error()),
 			slog.String("event_id", event.ID))
+
 		return err
 	}
 
@@ -56,6 +57,7 @@ func (k *KafkaPublisher) PublishEvent(ctx context.Context, event *dto.Event) err
 		logger.ErrorContext(ctx, "failed to send message",
 			slog.String("error", err.Error()),
 			slog.String("event_id", event.ID))
+
 		return err
 	}
 

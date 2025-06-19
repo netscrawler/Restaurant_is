@@ -21,10 +21,13 @@ func New(pingers []func() error, addr, port string) *App {
 		for _, f := range pingers {
 			errg.Go(f)
 		}
+
 		if errg.Wait() != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 	})
 
@@ -39,6 +42,7 @@ func (a *App) Start() {
 	l := slog.Default()
 	l.Debug("health starting")
 	fmt.Println("health starting")
+
 	go func() {
 		if err := http.ListenAndServe(a.addr, a.srv); err != nil {
 			l.Debug("err", slog.Any("err", err.Error()))

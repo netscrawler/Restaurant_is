@@ -50,7 +50,7 @@ type TelemertyConfig struct {
 	ServiceVersion string `yaml:"serviceVersion" env:"SERVICE_VERSION"`
 	Environment    string `yaml:"environment"    env:"ENVIRONMENT"`
 	MetricsPort    int    `yaml:"metricsPort"    env:"METRICS_PORT"`
-	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT" env-default:"localhost:4317"`
+	TraceEndpoint  string `yaml:"traceEndpoint"  env:"TRACE_ENDPOINT"  env-default:"localhost:4317"`
 }
 
 func MustLoad() *Config {

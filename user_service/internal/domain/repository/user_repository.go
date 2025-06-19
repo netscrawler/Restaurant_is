@@ -3,12 +3,11 @@ package repository
 import (
 	"context"
 
-	"user_service/internal/domain/models"
-
 	"github.com/google/uuid"
+	"user_service/internal/domain/models"
 )
 
-// UserRepository определяет интерфейс для работы с пользователями
+// UserRepository определяет интерфейс для работы с пользователями.
 type UserRepository interface {
 	// Create создает нового пользователя
 	Create(ctx context.Context, user *models.User) error

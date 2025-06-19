@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"user_service/internal/config"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/prometheus"
@@ -19,11 +17,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"user_service/internal/config"
 )
 
 // Config содержит конфигурацию телеметрии
 
-// Telemetry содержит все компоненты телеметрии
+// Telemetry содержит все компоненты телеметрии.
 type Telemetry struct {
 	Config         *config.TelemertyConfig
 	Logger         *slog.Logger
@@ -33,7 +32,7 @@ type Telemetry struct {
 	TracerProvider *sdktrace.TracerProvider
 }
 
-// New создает новый экземпляр телеметрии
+// New создает новый экземпляр телеметрии.
 func New(cfg *config.TelemertyConfig, logger *slog.Logger) (*Telemetry, error) {
 	// Создаем meter provider с Prometheus exporter
 	prometheusExporter, err := prometheus.New()
@@ -90,7 +89,7 @@ func New(cfg *config.TelemertyConfig, logger *slog.Logger) (*Telemetry, error) {
 	return telemetry, nil
 }
 
-// createResource создает ресурс для трейсинга
+// createResource создает ресурс для трейсинга.
 func createResource(cfg *config.TelemertyConfig) *resource.Resource {
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,
@@ -100,18 +99,20 @@ func createResource(cfg *config.TelemertyConfig) *resource.Resource {
 	)
 }
 
-// Shutdown корректно завершает работу телеметрии
+// Shutdown корректно завершает работу телеметрии.
 func (t *Telemetry) Shutdown(ctx context.Context) error {
 	if err := t.MeterProvider.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to shutdown meter provider: %w", err)
 	}
+
 	if err := t.TracerProvider.Shutdown(ctx); err != nil {
 		return fmt.Errorf("failed to shutdown tracer provider: %w", err)
 	}
+
 	return nil
 }
 
-// StartSpan создает новый span для трейсинга
+// StartSpan создает новый span для трейсинга.
 func (t *Telemetry) StartSpan(
 	ctx context.Context,
 	name string,
@@ -120,7 +121,7 @@ func (t *Telemetry) StartSpan(
 	return t.Tracer.Start(ctx, name, opts...)
 }
 
-// RecordMetric записывает метрику
+// RecordMetric записывает метрику.
 func (t *Telemetry) RecordMetric(name string, value float64, attrs ...string) {
 	// Здесь можно добавить логику для записи метрик
 	t.Logger.Debug("Recording metric",

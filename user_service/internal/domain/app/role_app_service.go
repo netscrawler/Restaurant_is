@@ -3,30 +3,29 @@ package application
 import (
 	"context"
 
-	"user_service/internal/domain/service"
-
 	"github.com/google/uuid"
+	"user_service/internal/domain/service"
 )
 
-// RoleAppService представляет application сервис для работы с ролями
+// RoleAppService представляет application сервис для работы с ролями.
 type RoleAppService struct {
 	roleService *service.RoleService
 }
 
-// NewRoleAppService создает новый экземпляр RoleAppService
+// NewRoleAppService создает новый экземпляр RoleAppService.
 func NewRoleAppService(roleService *service.RoleService) *RoleAppService {
 	return &RoleAppService{
 		roleService: roleService,
 	}
 }
 
-// AssignRoleRequest представляет запрос на назначение роли
+// AssignRoleRequest представляет запрос на назначение роли.
 type AssignRoleRequest struct {
 	UserID string
 	RoleID string
 }
 
-// AssignRole назначает роль пользователю
+// AssignRole назначает роль пользователю.
 func (s *RoleAppService) AssignRole(ctx context.Context, req *AssignRoleRequest) error {
 	userID, err := uuid.Parse(req.UserID)
 	if err != nil {
@@ -41,13 +40,13 @@ func (s *RoleAppService) AssignRole(ctx context.Context, req *AssignRoleRequest)
 	return s.roleService.AssignRole(ctx, userID, roleID)
 }
 
-// RevokeRoleRequest представляет запрос на отзыв роли
+// RevokeRoleRequest представляет запрос на отзыв роли.
 type RevokeRoleRequest struct {
 	UserID string
 	RoleID string
 }
 
-// RevokeRole отзывает роль у пользователя
+// RevokeRole отзывает роль у пользователя.
 func (s *RoleAppService) RevokeRole(ctx context.Context, req *RevokeRoleRequest) error {
 	userID, err := uuid.Parse(req.UserID)
 	if err != nil {
@@ -62,17 +61,17 @@ func (s *RoleAppService) RevokeRole(ctx context.Context, req *RevokeRoleRequest)
 	return s.roleService.RevokeRole(ctx, userID, roleID)
 }
 
-// GetUserRolesRequest представляет запрос на получение ролей пользователя
+// GetUserRolesRequest представляет запрос на получение ролей пользователя.
 type GetUserRolesRequest struct {
 	UserID string
 }
 
-// GetUserRolesResponse представляет ответ на получение ролей пользователя
+// GetUserRolesResponse представляет ответ на получение ролей пользователя.
 type GetUserRolesResponse struct {
 	Roles []*RoleResponse
 }
 
-// RoleResponse представляет роль в ответе
+// RoleResponse представляет роль в ответе.
 type RoleResponse struct {
 	ID          string
 	Name        string
@@ -81,7 +80,7 @@ type RoleResponse struct {
 	UpdatedAt   string
 }
 
-// GetUserRoles получает роли пользователя
+// GetUserRoles получает роли пользователя.
 func (s *RoleAppService) GetUserRoles(
 	ctx context.Context,
 	req *GetUserRolesRequest,

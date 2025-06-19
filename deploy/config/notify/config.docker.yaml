@@ -1,4 +1,4 @@
-env: "local"
+env: "prod"
 
 bot:
   telegram_token: "7608054545:AAFggD1QhPETt8Z5gALqvsZxw5unaq8ySk4"
@@ -9,3 +9,10 @@ grpc:
 
 shutdown: 5s
 stub_recipient: -1002513792792
+
+telemetry:
+  serviceName: "notify-service"
+  serviceVersion: "1.0.0"
+  environment: "production"
+  metricsPort: 10004
+  traceEndpoint: "jaeger:4317"

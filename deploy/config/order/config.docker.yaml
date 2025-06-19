@@ -1,4 +1,4 @@
-env: local
+env: "prod"
 db:
   type: "postgres"
   port: 5435
@@ -31,5 +31,5 @@ telemetry:
   serviceName: "order-service"
   serviceVersion: "1.0.0"
   environment: "production"
-  metricsPort: 9094
+  metricsPort: 10005
   traceEndpoint: "jaeger:4317"

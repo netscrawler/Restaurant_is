@@ -34,7 +34,7 @@ func Register(
 	)
 }
 
-// Основные операции с заказами
+// Основные операции с заказами.
 func (s *serverAPI) CreateOrder(
 	ctx context.Context,
 	r *orderv1.CreateOrderRequest,
@@ -44,6 +44,7 @@ func (s *serverAPI) CreateOrder(
 	}
 
 	items := make([]dto.OrderItem, len(r.GetItems()))
+
 	for i, item := range r.GetItems() {
 		itemID, err := uuid.Parse(item.GetDishId().GetValue())
 		if err != nil {
@@ -110,7 +111,7 @@ func (s *serverAPI) UpdateOrderStatus(
 	panic("not implemented") // TODO: Implement
 }
 
-// Платежи
+// Платежи.
 func (s *serverAPI) InitiatePayment(
 	ctx context.Context,
 	r *orderv1.PaymentRequest,
@@ -125,7 +126,7 @@ func (s *serverAPI) ProcessPaymentCallback(
 	panic("not implemented") // TODO: Implement
 }
 
-// История и отчетность
+// История и отчетность.
 func (s *serverAPI) GetOrderHistory(
 	ctx context.Context,
 	r *orderv1.GetOrderRequest,

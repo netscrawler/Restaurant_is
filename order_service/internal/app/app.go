@@ -13,16 +13,18 @@ import (
 	"github.com/netscrawler/Restaurant_is/order_service/internal/infra/out/kafka"
 	pg "github.com/netscrawler/Restaurant_is/order_service/internal/repository/pg_repo"
 	"github.com/netscrawler/Restaurant_is/order_service/internal/service"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/telemetry"
 )
 
 type App struct {
-	app    *grpcapp.App
-	healz  *health.App
-	cancel context.CancelFunc
-	kafka  *service.Event
+	app       *grpcapp.App
+	healz     *health.App
+	cancel    context.CancelFunc
+	kafka     *service.Event
+	telemetry *telemetry.Telemetry
 }
 
-func New(log *slog.Logger, cfg *config.Config) *App {
+func New(log *slog.Logger, cfg *config.Config, telemetry *telemetry.Telemetry) *App {
 	ctx, cancel := context.WithCancel(context.Background())
 	storage := postgres.MustSetup(ctx, cfg.DB.GetURL(), log)
 
@@ -54,10 +56,11 @@ func New(log *slog.Logger, cfg *config.Config) *App {
 	)
 
 	return &App{
-		app:    grpcapp,
-		healz:  heal,
-		cancel: cancel,
-		kafka:  eventSerice,
+		app:       grpcapp,
+		healz:     heal,
+		cancel:    cancel,
+		kafka:     eventSerice,
+		telemetry: telemetry,
 	}
 }
 

@@ -11,27 +11,27 @@ import (
 	authv1 "github.com/netscrawler/RispProtos/proto/gen/go/v1/auth"
 )
 
-// Регулярные выражения для валидации
+// Регулярные выражения для валидации.
 var (
-	// Валидация телефона (международный формат, например +79991234567)
+	// Валидация телефона (международный формат, например +79991234567).
 	phoneRegex = regexp.MustCompile(`^\+[1-9]\d{10,14}$`)
 
-	// Базовая валидация email
+	// Базовая валидация email.
 	emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
-	// Код подтверждения (обычно 4-6 цифр)
+	// Код подтверждения (обычно 4-6 цифр).
 	codeRegex = regexp.MustCompile(`^\d{4}$`)
 )
 
-// RequestValidator предоставляет API для валидации всех запросов
+// RequestValidator предоставляет API для валидации всех запросов.
 type RequestValidator struct{}
 
-// NewRequestValidator создает новый экземпляр валидатора запросов
+// NewRequestValidator создает новый экземпляр валидатора запросов.
 func NewRequestValidator() *RequestValidator {
 	return &RequestValidator{}
 }
 
-// ValidateRequest валидирует любой запрос из proto-сервиса
+// ValidateRequest валидирует любой запрос из proto-сервиса.
 func (v *RequestValidator) ValidateRequest(ctx context.Context, req interface{}) error {
 	switch r := req.(type) {
 	case *authv1.LoginClientInitRequest:
@@ -51,7 +51,7 @@ func (v *RequestValidator) ValidateRequest(ctx context.Context, req interface{})
 	}
 }
 
-// ValidateLoginClientRequest валидирует запрос на логин клиента
+// ValidateLoginClientRequest валидирует запрос на логин клиента.
 func ValidateLoginClientRequest(req *authv1.LoginClientInitRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -69,7 +69,7 @@ func ValidateLoginClientRequest(req *authv1.LoginClientInitRequest) error {
 	return nil
 }
 
-// ValidateLoginClientConfirmRequest валидирует запрос на подтверждение логина клиента
+// ValidateLoginClientConfirmRequest валидирует запрос на подтверждение логина клиента.
 func ValidateLoginClientConfirmRequest(req *authv1.LoginClientConfirmRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -96,7 +96,7 @@ func ValidateLoginClientConfirmRequest(req *authv1.LoginClientConfirmRequest) er
 	return nil
 }
 
-// ValidateLoginStaffRequest валидирует запрос на логин персонала
+// ValidateLoginStaffRequest валидирует запрос на логин персонала.
 func ValidateLoginStaffRequest(req *authv1.LoginStaffRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -124,7 +124,7 @@ func ValidateLoginStaffRequest(req *authv1.LoginStaffRequest) error {
 	return nil
 }
 
-// ValidateOAuthYandexRequest валидирует запрос на OAuth через Яндекс
+// ValidateOAuthYandexRequest валидирует запрос на OAuth через Яндекс.
 func ValidateOAuthYandexRequest(req *authv1.OAuthYandexRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -149,7 +149,7 @@ func ValidateOAuthYandexRequest(req *authv1.OAuthYandexRequest) error {
 	return nil
 }
 
-// ValidateValidateRequest валидирует запрос на валидацию токена
+// ValidateValidateRequest валидирует запрос на валидацию токена.
 func ValidateValidateRequest(req *authv1.ValidateRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -168,7 +168,7 @@ func ValidateValidateRequest(req *authv1.ValidateRequest) error {
 	return nil
 }
 
-// ValidateRefreshRequest валидирует запрос на обновление токена
+// ValidateRefreshRequest валидирует запрос на обновление токена.
 func ValidateRefreshRequest(req *authv1.RefreshRequest) error {
 	if req == nil {
 		return domain.ErrNilRequest
@@ -189,10 +189,9 @@ func ValidateRefreshRequest(req *authv1.RefreshRequest) error {
 
 // Вспомогательные функции
 
-// validatePassword проверяет пароль на соответствие требованиям безопасности
+// validatePassword проверяет пароль на соответствие требованиям безопасности.
 func validatePassword(password string) error {
 	// Минимальная длина
-
 	if len(password) < 8 {
 		return domain.ErrPasswordLen
 	}
@@ -231,7 +230,7 @@ func validatePassword(password string) error {
 	return nil
 }
 
-// isValidJWTFormat проверяет базовый формат JWT
+// isValidJWTFormat проверяет базовый формат JWT.
 func isValidJWTFormat(token string) bool {
 	parts := strings.Split(token, ".")
 

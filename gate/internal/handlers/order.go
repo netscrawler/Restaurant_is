@@ -21,6 +21,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var req orderv1.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -33,6 +34,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	resp, err := h.orderClient.CreateOrder(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -49,6 +51,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 	resp, err := h.orderClient.GetOrder(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -67,6 +70,7 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 	resp, err := h.orderClient.ListOrders(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -75,9 +79,11 @@ func (h *OrderHandler) ListOrders(c *gin.Context) {
 
 func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	id := c.Param("id")
+
 	var req orderv1.UpdateOrderStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -86,6 +92,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *gin.Context) {
 	_, err := h.orderClient.UpdateOrderStatus(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 

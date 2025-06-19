@@ -63,7 +63,6 @@ func MustSetup(
 				ObjectLocking: true,
 			})
 		}
-
 	}
 
 	stLogger.InfoContext(ctx, "all buckets ready")
@@ -80,6 +79,7 @@ func (s *Storage) PresignedGetObject(
 	expiry time.Duration,
 ) (*url.URL, error) {
 	url, err := s.Client.PresignedGetObject(ctx, bucketName, objectName, expiry, nil)
+
 	return url, err
 }
 

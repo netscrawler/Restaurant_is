@@ -1,65 +1,38 @@
 package grpcapp
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net"
 
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
-	authgrpc "github.com/netscrawler/Restaurant_is/auth/internal/grpc/auth"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	authgrpc "github.com/netscrawler/Restaurant_is/auth/internal/infra/in/grpc"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type App struct {
-	log        *zap.Logger
+	log        *slog.Logger
 	gRPCServer *grpc.Server
 	port       int
 }
 
 func New(
-	log *zap.Logger,
+	log *slog.Logger,
 	authService authgrpc.Auth,
 	audit authgrpc.Audit,
 	token authgrpc.Token,
 	user authgrpc.User,
 	port int,
 ) *App {
-	grpc_zap.ReplaceGrpcLoggerV2(log)
-
-	//nolint:exhaustive
-	logOpts := []grpc_zap.Option{
-		grpc_zap.WithLevels(func(code codes.Code) zapcore.Level {
-			switch code {
-			case codes.OK:
-				return zapcore.DebugLevel
-			case codes.InvalidArgument, codes.NotFound:
-				return zapcore.WarnLevel
-			default:
-				return zapcore.ErrorLevel
-			}
-		}),
-	}
-
-	recoveryOpts := []recovery.Option{
-		recovery.WithRecoveryHandler(func(p any) error {
-			log.Error("Recovered from panic", zap.Any("panic", p))
-
-			return status.Errorf(codes.Internal, "internal error")
-		}),
-	}
-
 	gRPCServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			grpc_zap.UnaryServerInterceptor(log, logOpts...),
-			recovery.UnaryServerInterceptor(recoveryOpts...),
+			UnaryLoggingInterceptor(log),
+			recovery.UnaryServerInterceptor(),
 		),
 		grpc.ChainStreamInterceptor(
-			grpc_zap.StreamServerInterceptor(log, logOpts...),
-			recovery.StreamServerInterceptor(recoveryOpts...),
+			recovery.StreamServerInterceptor(),
 		),
 	)
 	authgrpc.Register(gRPCServer, authService, audit, token, user)
@@ -68,6 +41,41 @@ func New(
 		log:        log,
 		gRPCServer: gRPCServer,
 		port:       port,
+	}
+}
+
+func UnaryLoggingInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (resp any, err error) {
+		traceID := oteltrace.SpanContextFromContext(ctx).TraceID().String()
+		log.Info("REQ",
+			slog.String("method", info.FullMethod),
+			slog.Any("request", req),
+			slog.String("trace_id", traceID),
+		)
+
+		resp, err = handler(ctx, req)
+		if err != nil {
+			log.Error("REQ FAIL",
+				slog.String("method", info.FullMethod),
+				slog.Any("error", err),
+				slog.String("trace_id", traceID),
+			)
+
+			return resp, err
+		}
+
+		log.Info("RESP",
+			slog.String("method", info.FullMethod),
+			slog.Any("response", resp),
+			slog.String("trace_id", traceID),
+		)
+
+		return resp, err
 	}
 }
 
@@ -87,7 +95,7 @@ func (a *App) Run() error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	a.log.Info("grpc server started", zap.String("addr", l.Addr().String()))
+	a.log.Info("grpc server started", slog.String("addr", l.Addr().String()))
 
 	if err := a.gRPCServer.Serve(l); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -100,8 +108,7 @@ func (a *App) Run() error {
 func (a *App) Stop() {
 	const op = "grpcapp.Stop"
 
-	a.log.With(zap.String("op", op)).
-		Info("stopping gRPC server", zap.Int("port", a.port))
+	a.log.Info("stopping gRPC server", slog.String("op", op), slog.Int("port", a.port))
 
 	a.gRPCServer.GracefulStop()
 }

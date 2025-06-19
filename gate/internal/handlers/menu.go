@@ -27,16 +27,19 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 			req.CategoryId = &val
 		}
 	}
+
 	if v := c.Query("only_available"); v != "" {
 		if v == "true" || v == "1" {
 			req.OnlyAvailable = true
 		}
 	}
+
 	if v := c.Query("page"); v != "" {
 		if page, err := strconv.Atoi(v); err == nil {
 			req.Page = int32(page)
 		}
 	}
+
 	if v := c.Query("page_size"); v != "" {
 		if pageSize, err := strconv.ParseInt(v, 10, 32); err == nil {
 			req.PageSize = int32(pageSize)
@@ -46,6 +49,7 @@ func (h *MenuHandler) ListDishes(c *gin.Context) {
 	resp, err := h.menuClient.ListDishes(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -62,6 +66,7 @@ func (h *MenuHandler) GetDish(c *gin.Context) {
 	resp, err := h.menuClient.GetDish(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -72,12 +77,14 @@ func (h *MenuHandler) CreateDish(c *gin.Context) {
 	var req menuv1.DishRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
 	resp, err := h.menuClient.CreateDish(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -86,9 +93,11 @@ func (h *MenuHandler) CreateDish(c *gin.Context) {
 
 func (h *MenuHandler) UpdateDish(c *gin.Context) {
 	id := c.Param("id")
+
 	var req menuv1.UpdateDishRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -97,6 +106,7 @@ func (h *MenuHandler) UpdateDish(c *gin.Context) {
 	resp, err := h.menuClient.UpdateDish(c.Request.Context(), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 
@@ -113,6 +123,7 @@ func (h *MenuHandler) DeleteDish(c *gin.Context) {
 	_, err := h.menuClient.GetDish(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
 		return
 	}
 

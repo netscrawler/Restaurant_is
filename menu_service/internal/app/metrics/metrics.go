@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -18,7 +19,7 @@ type App struct {
 	telemetry *telemetry.Telemetry
 }
 
-// New создает новое приложение для метрик
+// New создает новое приложение для метрик.
 func New(log *slog.Logger, telemetry *telemetry.Telemetry, port int) *App {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
@@ -36,27 +37,27 @@ func New(log *slog.Logger, telemetry *telemetry.Telemetry, port int) *App {
 	}
 }
 
-// MustRun запускает HTTP сервер метрик и паникует при ошибке
+// MustRun запускает HTTP сервер метрик и паникует при ошибке.
 func (a *App) MustRun() {
 	if err := a.Run(); err != nil {
 		panic(err)
 	}
 }
 
-// Run запускает HTTP сервер метрик
+// Run запускает HTTP сервер метрик.
 func (a *App) Run() error {
 	const op = "metrics.Run"
 
 	a.log.Info("metrics server started", slog.String("addr", a.server.Addr))
 
-	if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil
 }
 
-// Stop останавливает HTTP сервер метрик
+// Stop останавливает HTTP сервер метрик.
 func (a *App) Stop() {
 	const op = "metrics.Stop"
 

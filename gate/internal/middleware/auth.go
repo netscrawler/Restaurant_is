@@ -25,6 +25,7 @@ func (am *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
 			c.Abort()
+
 			return
 		}
 
@@ -32,6 +33,7 @@ func (am *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 		if tokenString == authHeader {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Bearer token required"})
 			c.Abort()
+
 			return
 		}
 
@@ -44,13 +46,14 @@ func (am *AuthMiddleware) ValidateToken() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
+
 			return
 		}
 
 		// Сохраняем информацию о пользователе в контексте
-		c.Set("user_id", validateResp.User.Id)
-		c.Set("user", validateResp.User)
-		c.Set("roles", validateResp.User.Roles)
+		c.Set("user_id", validateResp.GetUser().GetId())
+		c.Set("user", validateResp.GetUser())
+		c.Set("roles", validateResp.GetUser().GetRoles())
 		c.Next()
 	}
 }
@@ -61,6 +64,7 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 		if !exists {
 			c.JSON(http.StatusForbidden, gin.H{"error": "No roles found"})
 			c.Abort()
+
 			return
 		}
 
@@ -68,6 +72,7 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 		if !ok {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid roles format"})
 			c.Abort()
+
 			return
 		}
 
@@ -75,6 +80,7 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 		for _, role := range userRoles {
 			if role.String() == requiredRole {
 				c.Next()
+
 				return
 			}
 		}

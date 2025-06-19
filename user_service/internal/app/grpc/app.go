@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"net"
 
-	service "user_service/internal/domain/app"
-	usergrpc "user_service/internal/infra/in/grpc"
-	"user_service/internal/telemetry"
-
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	service "user_service/internal/domain/app"
+	usergrpc "user_service/internal/infra/in/grpc"
+	"user_service/internal/telemetry"
 )
 
 type App struct {
@@ -34,14 +34,13 @@ func New(
 	port int,
 	telemetry *telemetry.Telemetry,
 ) *App {
-	loggingOpts := []logging.Option{
-		logging.WithLogOnEvents(
-			// logging.StartCall, logging.FinishCall,
-			logging.PayloadReceived, logging.PayloadSent,
-		),
-		// Add any other option (check functions starting with logging.With).
-	}
-
+	// loggingOpts := []logging.Option{
+	// 	logging.WithLogOnEvents(
+	// 		// logging.StartCall, logging.FinishCall,
+	// 		logging.PayloadReceived, logging.PayloadSent,
+	// 	),
+	// 	// Add any other option (check functions starting with logging.With).
+	// }
 	recoveryOpts := []recovery.Option{
 		recovery.WithRecoveryHandler(func(p any) (err error) {
 			log.Error("Recovered from panic", slog.Any("panic", p))
@@ -51,10 +50,11 @@ func New(
 	}
 
 	gRPCServer := grpc.NewServer(
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
-		grpc.ChainUnaryInterceptor(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()), grpc.ChainUnaryInterceptor(
 			recovery.UnaryServerInterceptor(recoveryOpts...),
-			logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
+			UnaryLoggingInterceptor(log),
+
+			// logging.UnaryServerInterceptor(InterceptorLogger(log), loggingOpts...),
 		),
 		grpc.ChainStreamInterceptor(
 			otelgrpc.StreamServerInterceptor(),
@@ -68,6 +68,41 @@ func New(
 		gRPCServer: gRPCServer,
 		port:       port,
 		telemetry:  telemetry,
+	}
+}
+
+func UnaryLoggingInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (resp any, err error) {
+		traceID := oteltrace.SpanContextFromContext(ctx).TraceID().String()
+		log.Info("REQ",
+			slog.String("method", info.FullMethod),
+			slog.Any("request", req),
+			slog.String("trace_id", traceID),
+		)
+
+		resp, err = handler(ctx, req)
+		if err != nil {
+			log.Error("REQ FAIL",
+				slog.String("method", info.FullMethod),
+				slog.Any("error", err),
+				slog.String("trace_id", traceID),
+			)
+
+			return resp, err
+		}
+
+		log.Info("RESP",
+			slog.String("method", info.FullMethod),
+			slog.Any("response", resp),
+			slog.String("trace_id", traceID),
+		)
+
+		return resp, err
 	}
 }
 

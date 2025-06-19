@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -42,13 +43,13 @@ import (
 	otelgin "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-// @Summary Health check
-// @Description Проверка состояния сервиса
-// @Tags Health
-// @Accept json
-// @Produce json
-// @Success 200 {object} map[string]interface{}
-// @Router /health [get]
+const (
+	local = "local"
+	dev   = "dev"
+	prod  = "prod"
+)
+
+// @Router /health [get].
 func healthCheck(c *gin.Context) {
 	// Пример использования трейсинга
 	telemetryObj, ok := c.MustGet("telemetry").(*telemetry.Telemetry)
@@ -56,8 +57,10 @@ func healthCheck(c *gin.Context) {
 		ctx, span := telemetryObj.StartSpan(c.Request.Context(), "healthCheck")
 		defer span.End()
 		telemetryObj.RecordMetric("health_check_called", 1)
+
 		c.Request = c.Request.WithContext(ctx)
 	}
+
 	c.JSON(200, gin.H{
 		"status":  "ok",
 		"service": "gate",
@@ -68,6 +71,7 @@ func healthCheck(c *gin.Context) {
 func main() {
 	// Загрузка конфига
 	cfg := config.MustLoad()
+	logger := setupLogger(prod)
 
 	// Инициализация gRPC клиентов
 	clientsMap := map[string]string{
@@ -76,10 +80,12 @@ func main() {
 		"menu":  cfg.GetServiceAddress("menu"),
 		"order": cfg.GetServiceAddress("order"),
 	}
+
 	grpcClients, err := clients.NewGRPCClients(clientsMap)
 	if err != nil {
 		log.Fatalf("gRPC clients error: %v", err)
 	}
+
 	defer grpcClients.Close()
 
 	// Инициализация middleware
@@ -101,6 +107,7 @@ func main() {
 	// Инициализация gin
 	r := gin.Default()
 
+	r.Use(middleware.LoggingMiddleware(logger))
 	// Кастомный CORS: разрешаем Authorization, любые методы, любые заголовки, любые origin
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -113,8 +120,17 @@ func main() {
 	// Включаем автоматический трейсинг HTTP-запросов через otelgin
 	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))
 
-	// Endpoint для Prometheus метрик
-	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	// Endpoint для Prometheus метрик на отдельном порту
+	go func() {
+		metricsAddr := fmt.Sprintf(":%d", cfg.Telemetry.MetricsPort)
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		log.Printf("Starting metrics server on %s", metricsAddr)
+
+		if err := http.ListenAndServe(metricsAddr, mux); err != nil {
+			log.Fatalf("Failed to start metrics server: %v", err)
+		}
+	}()
 
 	// Health check
 	r.GET("/health", healthCheck)
@@ -129,45 +145,6 @@ func main() {
 			ginSwagger.URL("http://localhost:8080/swagger-static/combined-api.json"),
 		),
 	)
-
-	// // Swagger UI для каждого сервиса
-	// r.GET(
-	// 	"/swagger/auth/*any",
-	// 	ginSwagger.WrapHandler(
-	// 		swaggerFiles.Handler,
-	// 		ginSwagger.URL("http://localhost:8080/swagger-static/auth/auth.swagger.json"),
-	// 	),
-	// )
-	// r.GET(
-	// 	"/swagger/user/*any",
-	// 	ginSwagger.WrapHandler(
-	// 		swaggerFiles.Handler,
-	// 		ginSwagger.URL("http://localhost:8080/swagger-static/user/user.swagger.json"),
-	// 	),
-	// )
-	// r.GET(
-	// 	"/swagger/menu/*any",
-	// 	ginSwagger.WrapHandler(
-	// 		swaggerFiles.Handler,
-	// 		ginSwagger.URL("http://localhost:8080/swagger-static/menu/menu.swagger.json"),
-	// 	),
-	// )
-	// r.GET(
-	// 	"/swagger/order/*any",
-	// 	ginSwagger.WrapHandler(
-	// 		swaggerFiles.Handler,
-	// 		ginSwagger.URL("http://localhost:8080/swagger-static/order/order.swagger.json"),
-	// 	),
-	// )
-	//
-	// // Объединенный Swagger UI
-	// r.GET(
-	// 	"/swagger/combined/*any",
-	// 	ginSwagger.WrapHandler(
-	// 		swaggerFiles.Handler,
-	// 		ginSwagger.URL("http://localhost:8080/swagger-static/combined-api.json"),
-	// 	),
-	// )
 
 	// Публичные роуты (не требуют авторизации)
 	public := r.Group("/api/v1")
@@ -240,6 +217,7 @@ func main() {
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		<-quit
 		log.Println("Shutting down server...")
@@ -248,7 +226,23 @@ func main() {
 	}()
 
 	log.Printf("Starting server on %s:%d", cfg.Server.Host, cfg.Server.Port)
+
 	if err := r.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case local:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case dev, prod:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	default:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	}
+
+	return log
 }

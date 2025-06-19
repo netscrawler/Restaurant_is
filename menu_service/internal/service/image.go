@@ -61,6 +61,7 @@ func (i *Image) CreateURL(
 			err,
 		)
 	}
+
 	if !exists {
 		return "", "", fmt.Errorf("%w bucket %q does not exist", domain.ErrInternal, i.bucketName)
 	}
@@ -96,6 +97,7 @@ func (i *Image) GetDownloadURL(
 			err,
 		)
 	}
+
 	if !exists {
 		return "", fmt.Errorf("%w bucket %q does not exist", domain.ErrInternal, i.bucketName)
 	}

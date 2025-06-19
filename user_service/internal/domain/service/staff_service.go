@@ -2,28 +2,31 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"user_service/internal/domain/models"
 	"user_service/internal/domain/repository"
-
-	"github.com/google/uuid"
 )
 
-// StaffService представляет доменный сервис для работы с сотрудниками
+// StaffService представляет доменный сервис для работы с сотрудниками.
 type StaffService struct {
 	staffRepo repository.StaffRepository
 }
 
-// NewStaffService создает новый экземпляр StaffService
+// NewStaffService создает новый экземпляр StaffService.
 func NewStaffService(staffRepo repository.StaffRepository) *StaffService {
 	return &StaffService{
 		staffRepo: staffRepo,
 	}
 }
 
-// CreateStaff создает нового сотрудника
-func (s *StaffService) CreateStaff(ctx context.Context, workEmail, workPhone, fullName, position string) (*models.Staff, error) {
+// CreateStaff создает нового сотрудника.
+func (s *StaffService) CreateStaff(
+	ctx context.Context,
+	workEmail, workPhone, fullName, position string,
+) (*models.Staff, error) {
 	// Проверяем, не существует ли уже сотрудник с таким email
 	existingStaff, err := s.staffRepo.GetByWorkEmail(ctx, workEmail)
 	if err == nil && existingStaff != nil {
@@ -39,14 +42,20 @@ func (s *StaffService) CreateStaff(ctx context.Context, workEmail, workPhone, fu
 	return staff, nil
 }
 
-// UpdateStaff обновляет данные сотрудника
-func (s *StaffService) UpdateStaff(ctx context.Context, id uuid.UUID, workPhone, position string, isActive *bool) (*models.Staff, error) {
+// UpdateStaff обновляет данные сотрудника.
+func (s *StaffService) UpdateStaff(
+	ctx context.Context,
+	id uuid.UUID,
+	workPhone, position string,
+	isActive *bool,
+) (*models.Staff, error) {
 	staff, err := s.staffRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get staff: %w", err)
 	}
+
 	if staff == nil {
-		return nil, fmt.Errorf("staff not found")
+		return nil, errors.New("staff not found")
 	}
 
 	staff.Update(workPhone, position)
@@ -66,8 +75,12 @@ func (s *StaffService) UpdateStaff(ctx context.Context, id uuid.UUID, workPhone,
 	return staff, nil
 }
 
-// ListStaff возвращает список сотрудников
-func (s *StaffService) ListStaff(ctx context.Context, onlyActive bool, offset, limit int) ([]*models.Staff, int, error) {
+// ListStaff возвращает список сотрудников.
+func (s *StaffService) ListStaff(
+	ctx context.Context,
+	onlyActive bool,
+	offset, limit int,
+) ([]*models.Staff, int, error) {
 	staff, err := s.staffRepo.List(ctx, onlyActive, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list staff: %w", err)

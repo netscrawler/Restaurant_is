@@ -23,12 +23,15 @@ processors:
         action: upsert
 
 exporters:
+  otlp/jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
   prometheus:
-    endpoint: "0.0.0.0:8889" # Изменено с 8888 на 8889
+    endpoint: "0.0.0.0:8889"
     namespace: "restaurant_is"
-  zipkin:
-    endpoint: "http://jaeger:9411/api/v2/spans"
-    format: proto
+
   debug:
     verbosity: detailed
 
@@ -38,10 +41,12 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
       exporters: [debug, prometheus]
+
     traces:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
-      exporters: [debug, zipkin]
+      exporters: [debug, otlp/jaeger]
+
     logs:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]

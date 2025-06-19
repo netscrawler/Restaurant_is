@@ -53,12 +53,12 @@ func (d *dishPgRepo) Create(ctx context.Context, dish *dto.Dish) error {
 		).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	_, err = d.storage.DB.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	return nil
@@ -82,10 +82,11 @@ func (d *dishPgRepo) GetByID(ctx context.Context, id uuid.UUID) (*dto.Dish, erro
 		Where(squirrel.Eq{"id": id}).
 		ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return nil, fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	var dish dto.Dish
+
 	err = d.storage.DB.QueryRow(ctx, sql, args...).Scan(
 		&dish.ID,
 		&dish.Name,
@@ -103,7 +104,8 @@ func (d *dishPgRepo) GetByID(ctx context.Context, id uuid.UUID) (*dto.Dish, erro
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("%w: dish not found", domain.ErrInvalid)
 		}
-		return nil, fmt.Errorf("%w: %v", domain.ErrInternal, err)
+
+		return nil, fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	return &dish, nil
@@ -143,18 +145,20 @@ func (d *dishPgRepo) GetByFilter(
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return nil, fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	rows, err := d.storage.DB.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return nil, fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 	defer rows.Close()
 
 	var dishes []dto.Dish
+
 	for rows.Next() {
 		var dish dto.Dish
+
 		err = rows.Scan(
 			&dish.ID,
 			&dish.Name,
@@ -169,8 +173,9 @@ func (d *dishPgRepo) GetByFilter(
 			&dish.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", domain.ErrInternal, err)
+			return nil, fmt.Errorf("%w: %w", domain.ErrInternal, err)
 		}
+
 		dishes = append(dishes, dish)
 	}
 
@@ -185,21 +190,27 @@ func (d *dishPgRepo) Update(ctx context.Context, dish *dto.Dish) error {
 	if dish.Name != "" {
 		updateMap["name"] = dish.Name
 	}
+
 	if dish.Description != "" {
 		updateMap["description"] = dish.Description
 	}
+
 	if dish.Price > 0 {
 		updateMap["price"] = dish.Price
 	}
+
 	if dish.CategoryID != 0 {
 		updateMap["category_id"] = dish.CategoryID
 	}
+
 	if dish.CookingTimeMin != 0 {
 		updateMap["cooking_time_min"] = dish.CookingTimeMin
 	}
+
 	if dish.ImageURL != "" {
 		updateMap["image_url"] = dish.ImageURL
 	}
+
 	if dish.Calories != 0 {
 		updateMap["calories"] = dish.Calories
 	}
@@ -209,12 +220,12 @@ func (d *dishPgRepo) Update(ctx context.Context, dish *dto.Dish) error {
 		Where(squirrel.Eq{"id": dish.ID}).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	_, err = d.storage.DB.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	return nil
@@ -225,12 +236,12 @@ func (d *dishPgRepo) Delete(ctx context.Context, id uuid.UUID) error {
 		Where(squirrel.Eq{"id": id}).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	_, err = d.storage.DB.Exec(ctx, sql, args...)
 	if err != nil {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
+		return fmt.Errorf("%w: %w", domain.ErrInternal, err)
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/netscrawler/Restaurant_is/order_service/internal/app"
 	"github.com/netscrawler/Restaurant_is/order_service/internal/config"
+	"github.com/netscrawler/Restaurant_is/order_service/internal/telemetry"
 )
 
 const (
@@ -27,18 +29,31 @@ func main() {
 
 	slog.SetDefault(log)
 
-	application := app.New(log, cfg)
+	telemetryInstance, err := telemetry.New(&cfg.Telemetry, log)
+	if err != nil {
+		log.Error("failed to init telemetry", slog.Any("err", err))
+		os.Exit(1)
+	}
+
+	shutdownCtx, shutdownCancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGTERM,
+		syscall.SIGINT,
+	)
+	defer shutdownCancel()
+	defer func() {
+		if err := telemetryInstance.Shutdown(shutdownCtx); err != nil {
+			log.Error("failed to shutdown telemetry", slog.Any("err", err))
+		}
+	}()
+
+	application := app.New(log, cfg, telemetryInstance)
 
 	go func() {
 		application.MustRun()
 	}()
 
-	// Graceful shutdown
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-
-	<-stop
+	<-shutdownCtx.Done()
 
 	application.Stop()
 	log.Info("Gracefully stopped")

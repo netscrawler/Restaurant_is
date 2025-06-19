@@ -13,6 +13,7 @@ func NewDish(id string, name string, Price uint64) (*Dish, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Dish{
 		ID:    uuid,
 		Name:  name,

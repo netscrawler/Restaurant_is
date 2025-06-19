@@ -36,7 +36,7 @@ type UserCreatedPayload struct {
 }
 
 // SendUserCreatedEvent отправляет событие user_created в Kafka
-func (u *UserEventProducer) SendUserCreatedEvent(ctx context.Context, user interface{}) error {
+func (u *UserEventProducer) SendUserCreatedEvent(ctx context.Context, user any) error {
 	var payload UserCreatedPayload
 
 	switch v := user.(type) {
@@ -51,11 +51,6 @@ func (u *UserEventProducer) SendUserCreatedEvent(ctx context.Context, user inter
 			ID:       v.ID.String(),
 			UserType: string(models.UserTypeStaff),
 			Email:    v.WorkEmail,
-		}
-	case *models.User:
-		payload = UserCreatedPayload{
-			ID:       v.ID.String(),
-			UserType: v.UserType,
 		}
 	default:
 		return fmt.Errorf("unsupported user type: %T", user)

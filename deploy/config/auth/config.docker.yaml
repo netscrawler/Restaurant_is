@@ -42,4 +42,4 @@ telemetry:
   serviceVersion: "1.0.0"
   environment: "production"
   metricsPort: 10001
-  traceEndpoint: "jaeger:4317"
+  traceEndpoint: "otel-collector:4317"

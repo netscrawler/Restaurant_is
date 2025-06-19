@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -38,7 +37,6 @@ import (
 	metricsapp "github.com/netscrawler/Restaurant_is/gate/internal/metrics"
 	"github.com/netscrawler/Restaurant_is/gate/internal/middleware"
 	"github.com/netscrawler/Restaurant_is/gate/internal/telemetry"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	otelgin "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -127,16 +125,16 @@ func main() {
 	r.Use(otelgin.Middleware(cfg.Telemetry.ServiceName))
 
 	// Endpoint для Prometheus метрик на отдельном порту
-	go func() {
-		metricsAddr := fmt.Sprintf(":%d", cfg.Telemetry.MetricsPort)
-		mux := http.NewServeMux()
-		mux.Handle("/metrics", promhttp.Handler())
-		log.Printf("Starting metrics server on %s", metricsAddr)
-
-		if err := http.ListenAndServe(metricsAddr, mux); err != nil {
-			log.Fatalf("Failed to start metrics server: %v", err)
-		}
-	}()
+	// go func() {
+	// 	metricsAddr := fmt.Sprintf(":%d", cfg.Telemetry.MetricsPort)
+	// 	mux := http.NewServeMux()
+	// 	mux.Handle("/metrics", promhttp.Handler())
+	// 	log.Printf("Starting metrics server on %s", metricsAddr)
+	//
+	// 	if err := http.ListenAndServe(metricsAddr, mux); err != nil {
+	// 		log.Fatalf("Failed to start metrics server: %v", err)
+	// 	}
+	// }()
 
 	// Health check
 	r.GET("/health", healthCheck)

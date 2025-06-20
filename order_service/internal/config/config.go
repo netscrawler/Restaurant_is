@@ -21,11 +21,11 @@ type Config struct {
 }
 
 type MenuClient struct {
-	Address           string        `yaml:"address"`
-	BaseDelay         time.Duration `yaml:"baseDelay"`
-	Multiplier        float64       `yaml:"multiplier"`
-	MaxDelay          time.Duration `yaml:"maxDelay"`
-	MinConnectTimeout time.Duration `yaml:"minConnectTimeout"`
+	Address           string        `yaml:"address"           env:"ADDRESS"`
+	BaseDelay         time.Duration `yaml:"baseDelay"         env:"BASE_DELAY"`
+	Multiplier        float64       `yaml:"multiplier"        env:"MULTIPLIER"`
+	MaxDelay          time.Duration `yaml:"maxDelay"          env:"MAX_DELAY"`
+	MinConnectTimeout time.Duration `yaml:"minConnectTimeout" env:"MIN_CONNECT_TIMEOUT"`
 }
 
 type DatabaseConfig struct {

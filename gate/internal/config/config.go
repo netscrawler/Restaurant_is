@@ -9,32 +9,32 @@ import (
 )
 
 type Config struct {
-	Server    ServerConfig    `env:"SERVER"`
-	Services  ServicesConfig  `env:"SERVICES"`
-	Auth      AuthConfig      `env:"AUTH"`
+	Server    ServerConfig    `env:"SERVER"   yaml:"server"`
+	Services  ServicesConfig  `env:"SERVICES" yaml:"services"`
+	Auth      AuthConfig      `env:"AUTH"     yaml:"auth"`
 	Telemetry TelemertyConfig `               yaml:"telemetry"`
 }
 
 type ServerConfig struct {
-	Port int    `env:"PORT" env-default:"8080"`
-	Host string `env:"HOST" env-default:"0.0.0.0"`
+	Port int    `env:"PORT" env-default:"8080"    yaml:"port"`
+	Host string `env:"HOST" env-default:"0.0.0.0" yaml:"host"`
 }
 
 type ServicesConfig struct {
-	Auth   ServiceConfig `env:"AUTH"`
-	User   ServiceConfig `env:"USER"`
-	Menu   ServiceConfig `env:"MENU"`
-	Order  ServiceConfig `env:"ORDER"`
-	Notify ServiceConfig `env:"NOTIFY"`
+	Auth   ServiceConfig `env:"AUTH"   yaml:"auth"`
+	User   ServiceConfig `env:"USER"   yaml:"user"`
+	Menu   ServiceConfig `env:"MENU"   yaml:"menu"`
+	Order  ServiceConfig `env:"ORDER"  yaml:"order"`
+	Notify ServiceConfig `env:"NOTIFY" yaml:"notify"`
 }
 
 type ServiceConfig struct {
-	Host string `env:"HOST" env-default:"localhost"`
-	Port int    `env:"PORT"`
+	Host string `env:"HOST" env-default:"localhost" yaml:"host"`
+	Port int    `env:"PORT"                         yaml:"port"`
 }
 
 type AuthConfig struct {
-	JWTSecret string `env:"JWT_SECRET" env-default:"your-secret-key"`
+	JWTSecret string `env:"JWT_SECRET" env-default:"your-secret-key" yaml:"jwt_secret"`
 }
 
 type TelemertyConfig struct {

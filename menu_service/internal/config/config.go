@@ -41,8 +41,8 @@ type DatabaseConfig struct {
 }
 
 type gRPC struct {
-	Address string `yaml:"address" env:"address" env-default:"address"`
-	Port    int    `yaml:"port"    env:"port"`
+	Address string `yaml:"address" env:"ADDRESS" env-default:"address"`
+	Port    int    `yaml:"port"    env:"PORT"`
 }
 
 type TelemertyConfig struct {

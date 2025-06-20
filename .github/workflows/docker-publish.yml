@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [ menu_service]
+        service: [auth, user_service, order_service, notify, menu_service, gate]
 
     permissions:
       contents: read
@@ -50,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}-${{ matrix.service }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}_${{ matrix.service }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag

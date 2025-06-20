@@ -10,12 +10,12 @@ import (
 )
 
 type Config struct {
-	Env           string          `yaml:"env"`
-	Bot           Bot             `yaml:"bot"`
-	GRRPC         GRPC            `yaml:"grpc"`
-	Shutdown      time.Duration   `yaml:"shutdown"       env:"SHUTDOWN_TIMEOUT" env-default:"5s"`
-	StubRecipient int64           `yaml:"stub_recipient"`
-	Telemetry     TelemertyConfig `yaml:"telemetry"`
+	Env           string          `yaml:"env"            env:"ENV"`
+	Bot           Bot             `yaml:"bot"            env:"BOT"`
+	GRRPC         GRPC            `yaml:"grpc"           env:"GRRPC"`
+	Shutdown      time.Duration   `yaml:"shutdown"       env:"SHUTDOWN_TIMEOUT" ENV-DEFAULT:"5s"`
+	StubRecipient int64           `yaml:"stub_recipient" env:"STUB_RECIPIENT"`
+	Telemetry     TelemertyConfig `yaml:"telemetry"      env:"TELEMETRY"`
 }
 type Bot struct {
 	TelegramToken string        `yaml:"telegram_token" env:"TELEGRAM_TOKEN"`
@@ -23,7 +23,7 @@ type Bot struct {
 }
 
 type GRPC struct {
-	Port int `yaml:"port" env:"port"`
+	Port int `yaml:"port" env:"PORT"`
 }
 
 type TelemertyConfig struct {

@@ -14,15 +14,15 @@ import (
 
 type Config struct {
 	Env          string          `yaml:"env"          env:"ENV"                env-default:"local"`
-	DB           DatabaseConfig  `yaml:"db"           env:"DATABASE_CONFIG"`
-	GRPCServer   gRPC            `yaml:"grpcServer"   env:"GRPC_SERVER_CONFIG"`
-	YandexOAuth  YandexOAuth     `yaml:"yandexOAuth"  env:"YANDEX_O_AUTH"`
-	JWT          JWTConfig       `yaml:"jwt"`
-	JWTRaw       JWTConfigRaw    `yaml:"jwtRAW"`
-	CodeLife     time.Duration   `yaml:"codeLife"                              env-default:"5m"`
-	NotifyClient NotifyClient    `yaml:"notifyClient"`
-	Telemetry    TelemertyConfig `yaml:"telemetry"`
-	Kafka        Kafka           `yaml:"kafka"`
+	DB           DatabaseConfig  `yaml:"db"           env:"DATABASE_CONFIG"    env-default:"db"`
+	GRPCServer   gRPC            `yaml:"grpcServer"   env:"GRPC_SERVER_CONFIG" env-default:"grpc_server"`
+	YandexOAuth  YandexOAuth     `yaml:"yandexOAuth"  env:"YANDEX_O_AUTH"      env-default:"yandex_o_auth"`
+	JWT          JWTConfig       `yaml:"jwt"          env:"JWT"                env-default:"jwt"`
+	JWTRaw       JWTConfigRaw    `yaml:"jwtRAW"       env:"JWT_RAW"            env-default:"jwt_raw"`
+	CodeLife     time.Duration   `yaml:"codeLife"     env:"CODE_LIFE"          env-default:"5m"`
+	NotifyClient NotifyClient    `yaml:"notifyClient" env:"NOTIFY_CLIENT"      env-default:"notify_client"`
+	Telemetry    TelemertyConfig `yaml:"telemetry"    env:"TELEMETRY"          env-default:"telemetry"`
+	Kafka        Kafka           `yaml:"kafka"        env:"KAFKA"              env-default:"kafka"`
 }
 
 type Kafka struct {
@@ -45,16 +45,16 @@ type DatabaseConfig struct {
 }
 
 type NotifyClient struct {
-	Address           string        `yaml:"address"`
-	BaseDelay         time.Duration `yaml:"baseDelay"`
-	Multiplier        float64       `yaml:"multiplier"`
-	MaxDelay          time.Duration `yaml:"maxDelay"`
-	MinConnectTimeout time.Duration `yaml:"minConnectTimeout"`
+	Address           string        `yaml:"address"           env:"ADDRESS"`
+	BaseDelay         time.Duration `yaml:"baseDelay"         env:"BASE_DELAY"`
+	Multiplier        float64       `yaml:"multiplier"        env:"MULTIPLIER"`
+	MaxDelay          time.Duration `yaml:"maxDelay"          env:"MAX_DELAY"`
+	MinConnectTimeout time.Duration `yaml:"minConnectTimeout" env:"MIN_CONNECT_TIMEOUT"`
 }
 
 type gRPC struct {
-	Address string `yaml:"address" env:"address" env-default:"address"`
-	Port    int    `yaml:"port"    env:"port"`
+	Address string `yaml:"address" env:"ADDRESS" env-default:"address"`
+	Port    int    `yaml:"port"    env:"PORT"`
 }
 type YandexOAuth struct {
 	ClientID     string `yaml:"yandexClientId"     env:"YANDEX_CLIENT_ID"`
@@ -72,13 +72,13 @@ type JWTConfig struct {
 }
 
 type JWTConfigRaw struct {
-	PrivateKey        string        `yaml:"privateKey"`
-	PublicKey         string        `yaml:"publicKey"`
-	RefreshPrivateKey string        `yaml:"refreshPrivateKey"`
-	RefreshPublicKey  string        `yaml:"refreshPublicKey"`
-	AccessTTL         time.Duration `yaml:"accessTtl"`
-	RefreshTTL        time.Duration `yaml:"refreshTtl"`
-	Issuer            string        `yaml:"issuer"`
+	PrivateKey        string        `yaml:"privateKey"        env:"PRIVATE_KEY"`
+	PublicKey         string        `yaml:"publicKey"         env:"PUBLIC_KEY"`
+	RefreshPrivateKey string        `yaml:"refreshPrivateKey" env:"REFRESH_PRIVATE_KEY"`
+	RefreshPublicKey  string        `yaml:"refreshPublicKey"  env:"REFRESH_PUBLIC_KEY"`
+	AccessTTL         time.Duration `yaml:"accessTtl"         env:"ACCESS_TTL"`
+	RefreshTTL        time.Duration `yaml:"refreshTtl"        env:"REFRESH_TTL"`
+	Issuer            string        `yaml:"issuer"            env:"ISSUER"`
 }
 
 type TelemertyConfig struct {

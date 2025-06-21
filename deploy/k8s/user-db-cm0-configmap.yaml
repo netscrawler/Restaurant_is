@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  001-create-users-table.sql: "-- Создание таблицы пользователей\nCREATE TABLE IF NOT EXISTS users (\n    id UUID PRIMARY KEY DEFAULT gen-random-uuid(),\n    email VARCHAR(255) UNIQUE NOT NULL,\n    phone VARCHAR(20) UNIQUE NOT NULL,\n    full-name VARCHAR(255) NOT NULL,\n    is-active BOOLEAN NOT NULL DEFAULT true,\n    created-at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),\n    updated-at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()\n);\n\n-- Создание индексов для таблицы пользователей\nCREATE INDEX IF NOT EXISTS idx-users-email ON users(email);\nCREATE INDEX IF NOT EXISTS idx-users-phone ON users(phone);\nCREATE INDEX IF NOT EXISTS idx-users-is-active ON users(is-active);\nCREATE INDEX IF NOT EXISTS idx-users-created-at ON users(created-at);\n\n-- Создание триггера для автоматического обновления updated-at\nCREATE OR REPLACE FUNCTION update-updated-at-column()\nRETURNS TRIGGER AS $$\nBEGIN\n    NEW.updated-at = NOW();\n    RETURN NEW;\nEND;\n$$ language 'plpgsql';\n\nCREATE TRIGGER update-users-updated-at \n    BEFORE UPDATE ON users \n    FOR EACH ROW \n    EXECUTE FUNCTION update-updated-at-column(); "
+  002-create-staff-table.sql: "-- Создание таблицы сотрудников\nCREATE TABLE IF NOT EXISTS staff (\n    id UUID PRIMARY KEY DEFAULT gen-random-uuid(),\n    work-email VARCHAR(255) UNIQUE NOT NULL,\n    work-phone VARCHAR(20) UNIQUE NOT NULL,\n    full-name VARCHAR(255) NOT NULL,\n    position VARCHAR(255) NOT NULL,\n    is-active BOOLEAN NOT NULL DEFAULT true,\n    hire-date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()\n);\n\n-- Создание индексов для таблицы сотрудников\nCREATE INDEX IF NOT EXISTS idx-staff-work-email ON staff(work-email);\nCREATE INDEX IF NOT EXISTS idx-staff-work-phone ON staff(work-phone);\nCREATE INDEX IF NOT EXISTS idx-staff-is-active ON staff(is-active);\nCREATE INDEX IF NOT EXISTS idx-staff-hire-date ON staff(hire-date);\nCREATE INDEX IF NOT EXISTS idx-staff-position ON staff(position); "
+  003-create-roles-table.sql: "-- Создание таблицы ролей\nCREATE TABLE IF NOT EXISTS roles (\n    id UUID PRIMARY KEY DEFAULT gen-random-uuid(),\n    name VARCHAR(100) UNIQUE NOT NULL,\n    description TEXT,\n    created-at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),\n    updated-at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()\n);\n\n-- Создание индексов для таблицы ролей\nCREATE INDEX IF NOT EXISTS idx-roles-name ON roles(name);\nCREATE INDEX IF NOT EXISTS idx-roles-created-at ON roles(created-at);\n\n-- Создание триггера для автоматического обновления updated-at\nCREATE TRIGGER update-roles-updated-at \n    BEFORE UPDATE ON roles \n    FOR EACH ROW \n    EXECUTE FUNCTION update-updated-at-column(); "
+  004-create-user-roles-table.sql: "-- Создание таблицы связи пользователей и ролей\nCREATE TABLE IF NOT EXISTS user-roles (\n    id UUID PRIMARY KEY DEFAULT gen-random-uuid(),\n    user-id UUID NOT NULL,\n    role-id UUID NOT NULL,\n    assigned-at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),\n    UNIQUE(user-id, role-id)\n);\n\n-- Создание внешних ключей\nALTER TABLE user-roles \n    ADD CONSTRAINT fk-user-roles-user-id \n    FOREIGN KEY (user-id) REFERENCES users(id) ON DELETE CASCADE;\n\nALTER TABLE user-roles \n    ADD CONSTRAINT fk-user-roles-role-id \n    FOREIGN KEY (role-id) REFERENCES roles(id) ON DELETE CASCADE;\n\n-- Создание индексов для таблицы user-roles\nCREATE INDEX IF NOT EXISTS idx-user-roles-user-id ON user-roles(user-id);\nCREATE INDEX IF NOT EXISTS idx-user-roles-role-id ON user-roles(role-id);\nCREATE INDEX IF NOT EXISTS idx-user-roles-assigned-at ON user-roles(assigned-at); "
+  005-insert-default-roles.sql: "-- Вставка базовых ролей\nINSERT INTO roles (id, name, description) VALUES\n    ('550e8400-e29b-41d4-a716-446655440001', 'admin', 'Администратор системы'),\n    ('550e8400-e29b-41d4-a716-446655440002', 'manager', 'Менеджер'),\n    ('550e8400-e29b-41d4-a716-446655440003', 'waiter', 'Официант'),\n    ('550e8400-e29b-41d4-a716-446655440004', 'cook', 'Повар'),\n    ('550e8400-e29b-41d4-a716-446655440005', 'customer', 'Клиент')\nON CONFLICT (name) DO NOTHING; "
+  pg-hba-setup.sh: |
+    #!/bin/bash
+    echo "host replication replicator 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg-hba.conf
+  replica-setup.sql: |
+    CREATE SUBSCRIPTION user-subscription
+    CONNECTION 'host=user-db port=5439 user=replicator password=replicator-password dbname=user'
+    PUBLICATION user-publication;
+  replication-setup.sql: |
+    -- Создание пользователя для репликации, если он не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-roles WHERE rolname = 'replicator') THEN
+          CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator-password';
+       END IF;
+    END $$;
+
+    -- Настройка прав доступа
+    GRANT CONNECT ON DATABASE user TO replicator;
+    GRANT USAGE ON SCHEMA public TO replicator;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO replicator;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO replicator;
+
+    -- Создание публикации, если она не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-publication WHERE pubname = 'user-publication') THEN
+          CREATE PUBLICATION user-publication FOR ALL TABLES;
+       END IF;
+    END $$;
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: user-db
+  name: user-db-cm0

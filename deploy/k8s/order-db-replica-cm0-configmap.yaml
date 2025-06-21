@@ -1,0 +1,66 @@
+apiVersion: v1
+data:
+  001-create-tables.sql: |
+    -- Create orders table
+    CREATE TABLE IF NOT EXISTS orders (
+        id UUID PRIMARY KEY,
+        user-id UUID NOT NULL,
+        num BIGSERIAL UNIQUE NOT NULL,
+        price BIGINT NOT NULL,
+        created-at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT-TIMESTAMP,
+        updated-at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT-TIMESTAMP,
+        status VARCHAR(50) NOT NULL,
+        order-type VARCHAR(50) NOT NULL,
+        address TEXT,
+        dish-quantites JSONB NOT NULL
+    );
+
+    -- Create events table
+    CREATE TABLE IF NOT EXISTS events (
+        id VARCHAR(255) PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        payload BYTEA,
+        published BOOLEAN DEFAULT false,
+        occured-at TIMESTAMP WITH TIME ZONE NOT NULL
+    );
+
+    -- Create indexes for better query performance
+    CREATE INDEX idx-orders-user-id ON orders(user-id);
+    CREATE INDEX idx-orders-num ON orders(num);
+    CREATE INDEX idx-events-type ON events(type);
+    CREATE INDEX idx-events-published ON events(published);
+    CREATE INDEX idx-events-occured-at ON events(occured-at);
+  pg-hba-setup.sh: |
+    #!/bin/bash
+    echo "host replication replicator 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg-hba.conf
+  replica-setup.sql: |
+    CREATE SUBSCRIPTION order-subscription
+    CONNECTION 'host=order-db port=5435 user=replicator password=replicator-password dbname=order'
+    PUBLICATION order-publication;
+  replication-setup.sql: |
+    -- Создание пользователя для репликации, если он не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-roles WHERE rolname = 'replicator') THEN
+          CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator-password';
+       END IF;
+    END $$;
+
+    -- Настройка прав доступа
+    GRANT CONNECT ON DATABASE order TO replicator;
+    GRANT USAGE ON SCHEMA public TO replicator;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO replicator;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO replicator;
+
+    -- Создание публикации, если она не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-publication WHERE pubname = 'order-publication') THEN
+          CREATE PUBLICATION order-publication FOR ALL TABLES;
+       END IF;
+    END $$;
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: order-db-replica
+  name: order-db-replica-cm0

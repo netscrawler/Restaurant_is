@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: auth-db-replica
+  name: auth-db-replica
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: auth-db-replica
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: auth-db-replica
+    spec:
+      containers:
+        - args:
+            - postgres
+            - -c
+            - port=5432
+            - -c
+            - wal-level=logical
+          env:
+            - name: POSTGRES-DB
+              value: auth
+            - name: POSTGRES-PASSWORD
+              value: postgres
+            - name: POSTGRES-USER
+              value: postgres
+          image: postgres:latest
+          livenessProbe:
+            exec:
+              command:
+                - pg-isready -U postgres -p 5432
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: auth-db-replica
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: auth-db-replica-cm0
+              readOnly: true
+            - mountPath: /var/lib/postgresql/data
+              name: auth-postgres-data-replica
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: auth-db-replica-cm0
+          name: auth-db-replica-cm0
+        - name: auth-postgres-data-replica
+          persistentVolumeClaim:
+            claimName: auth-postgres-data-replica

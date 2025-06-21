@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: notify
+  name: notify
+spec:
+  ports:
+    - name: "54822"
+      port: 54822
+      targetPort: 54822
+    - name: "10004"
+      port: 10004
+      targetPort: 10004
+  selector:
+    io.kompose.service: notify

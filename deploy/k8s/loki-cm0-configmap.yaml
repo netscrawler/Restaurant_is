@@ -1,0 +1,35 @@
+apiVersion: v1
+data:
+  loki-config.yaml: |
+    auth-enabled: false
+
+    server:
+      http-listen-port: 3100
+
+    common:
+      path-prefix: /loki
+      storage:
+        filesystem:
+          chunks-directory: /loki/chunks
+          rules-directory: /loki/rules
+      replication-factor: 1
+      ring:
+        kvstore:
+          store: inmemory
+
+    schema-config:
+      configs:
+        - from: 2020-10-24
+          store: tsdb
+          object-store: filesystem
+          schema: v13
+          index:
+            prefix: index-
+            period: 24h
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: loki
+  name: loki-cm0

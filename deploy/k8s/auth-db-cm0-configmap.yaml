@@ -1,0 +1,109 @@
+apiVersion: v1
+data:
+  001-create-tables.sql: |
+    ---------------------------
+    -- 1. Таблица пользователей (клиенты)
+    ---------------------------
+    CREATE TABLE clients (
+        id UUID PRIMARY KEY DEFAULT gen-random-uuid(),
+        phone VARCHAR(255) UNIQUE,
+        is-active BOOLEAN NOT NULL DEFAULT TRUE,
+        created-at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    ---------------------------
+    -- 2. Таблица сотрудников (ресторан)
+    ---------------------------
+    CREATE TABLE staff (
+        id UUID PRIMARY KEY DEFAULT gen-random-uuid(),
+        work-email VARCHAR(255) UNIQUE NOT NULL,
+        password-hash VARCHAR(255) NOT NULL,
+        position VARCHAR(255) NOT NULL,
+        is-active BOOLEAN NOT NULL DEFAULT TRUE,
+        need-change-password BOOLEAN NOT NULL DEFAULT TRUE,
+        created-at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated-at TIMESTAMPTZ
+    );
+
+    ---------------------------
+    -- 3. OAuth-провайдеры (для клиентов)
+    ---------------------------
+    CREATE TABLE oauth-providers (
+        client-id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+        provider VARCHAR(50) NOT NULL CHECK (provider IN ('yandex', 'google')),
+        provider-id VARCHAR(255) NOT NULL,
+        access-token TEXT NOT NULL,
+        PRIMARY KEY (client-id, provider)
+    );
+
+    ---------------------------
+    -- 4. Refresh-токены (общая таблица)
+    ---------------------------
+    CREATE TABLE refresh-tokens (
+        token TEXT PRIMARY KEY,
+        user-id UUID NOT NULL, -- Может ссылаться на clients.id или staff.id
+        user-type VARCHAR(10) NOT NULL CHECK (user-type IN ('client', 'staff')),
+        expires-at TIMESTAMPTZ NOT NULL,
+        revoked BOOLEAN NOT NULL DEFAULT FALSE,
+        created-at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    ---------------------------
+    -- 5. Аудит авторизации
+    ---------------------------
+    CREATE TABLE auth-logs (
+        id UUID PRIMARY KEY DEFAULT gen-random-uuid(),
+        user-id UUID NOT NULL,         -- ID из таблицы clients/staff
+        user-type VARCHAR(10) NOT NULL CHECK (user-type IN ('client', 'staff')),
+        action VARCHAR(20) NOT NULL CHECK (action IN ('login', 'logout', 'token-refresh', 'token-revoke')),
+        ip-address VARCHAR(45) NOT NULL,
+        user-agent TEXT,
+        created-at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  002-insert-data.sql: |
+    -- -- Заполнение ролей для доставки
+    -- INSERT INTO roles (role-name) VALUES
+    -- ('CUSTOMER'),   -- Клиент
+    -- ('COURIER'),    -- Курьер
+    -- ('MANAGER'),    -- Менеджер
+    -- ('ADMIN'),      -- Администратор системы
+    -- ('CHEF');      -- Повар
+    --
+    -- -- Заполнение дефолтных значений
+    -- INSERT INTO account-types (type-name) VALUES
+    -- ('USER'),   -- Обычный пользователь
+    -- ('STAFF');  -- Сотрудник службы доставки
+  003-replication-setup.sql: |+
+    -- Создание пользователя для репликации
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-roles WHERE rolname = 'replicator') THEN
+          CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator-password';
+       END IF;
+    END $$;
+
+    -- Настройка прав
+    GRANT CONNECT ON DATABASE auth TO replicator;
+    GRANT USAGE ON SCHEMA public TO replicator;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO replicator;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO replicator;
+
+    -- Создание публикации
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-publication WHERE pubname = 'auth-publication') THEN
+          CREATE PUBLICATION auth-publication FOR ALL TABLES;
+       END IF;
+    END $$;
+
+  pg-hba-setup.sh: |
+    #!/bin/bash
+    echo "host replication replicator 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg-hba.conf
+  replica-setup.sql: |
+    CREATE SUBSCRIPTION auth-subscription
+    CONNECTION 'host=auth-db port=5432 user=replicator password=replicator-password dbname=auth'
+    PUBLICATION auth-publication;
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: auth-db
+  name: auth-db-cm0

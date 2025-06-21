@@ -1,0 +1,63 @@
+apiVersion: v1
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        timeout: 1s
+        send-batch-size: 1024
+      memory-limiter:
+        check-interval: 1s
+        limit-mib: 1500
+      resource:
+        attributes:
+          - key: service.namespace
+            value: "restaurant-is"
+            action: upsert
+          - key: deployment.environment
+            value: "production"
+            action: upsert
+
+    exporters:
+      otlp/jaeger:
+        endpoint: jaeger:14250
+        tls:
+          insecure: true
+
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: "restaurant-is"
+
+      debug:
+        verbosity: detailed
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [memory-limiter, resource, batch]
+          exporters: [debug, prometheus]
+
+        traces:
+          receivers: [otlp]
+          processors: [memory-limiter, resource, batch]
+          exporters: [debug, otlp/jaeger]
+
+        logs:
+          receivers: [otlp]
+          processors: [memory-limiter, resource, batch]
+          exporters: [debug]
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: otel-collector
+  name: otel-collector-cm0

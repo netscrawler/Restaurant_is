@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: order-db
+    spec:
+      containers:
+        - args:
+            - postgres
+            - -c
+            - port=5435
+            - -c
+            - wal-level=logical
+            - -c
+            - max-wal-senders=10
+            - -c
+            - max-replication-slots=10
+          env:
+            - name: POSTGRES-DB
+              value: order
+            - name: POSTGRES-PASSWORD
+              value: postgres
+            - name: POSTGRES-USER
+              value: postgres
+          image: postgres:latest
+          livenessProbe:
+            exec:
+              command:
+                - pg-isready -U postgres -p 5435
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: order-db
+          ports:
+            - containerPort: 5435
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: order-db-cm0
+              readOnly: true
+            - mountPath: /var/lib/postgresql/data
+              name: order-postgres-data
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: order-db-cm0
+          name: order-db-cm0
+        - name: order-postgres-data
+          persistentVolumeClaim:
+            claimName: order-postgres-data

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: gate
+  name: gate
+spec:
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
+    - name: "10002"
+      port: 10002
+      targetPort: 10002
+  selector:
+    io.kompose.service: gate

@@ -1,0 +1,57 @@
+apiVersion: v1
+data:
+  prometheus.yaml: |
+    global:
+      scrape-interval: 15s
+      evaluation-interval: 15s
+
+    rule-files:
+      # - "first-rules.yml"
+      # - "second-rules.yml"
+
+    scrape-configs:
+      - job-name: "prometheus"
+        static-configs:
+          - targets: ["localhost:9090"]
+      - job-name: "auth-service"
+        static-configs:
+          - targets: ["auth-service:10001"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "notify"
+        static-configs:
+          - targets: ["notify:10004"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "menu-service"
+        static-configs:
+          - targets: ["menu-service:10003"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "order-service"
+        static-configs:
+          - targets: ["order-service:10005"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "user-service"
+        static-configs:
+          - targets: ["user-service:10006"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "gate"
+        static-configs:
+          - targets: ["gate:8080"]
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+      - job-name: "otel-collector"
+        static-configs:
+          - targets: ["otel-collector:8889"] # Изменено с 8888 на 8889
+        metrics-path: "/metrics"
+        scrape-interval: 10s
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: prometheus
+  name: prometheus-cm0

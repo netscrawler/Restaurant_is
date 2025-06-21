@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: notify
+  name: notify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: notify
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: notify
+    spec:
+      containers:
+        - env:
+            - name: BOT-POLL
+              value: 30s
+            - name: BOT-TELEGRAM-TOKEN
+              value: 7608054545:AAFggD1QhPETt8Z5gALqvsZxw5unaq8ySk4
+            - name: ENV
+              value: prod
+            - name: GRPC-PORT
+              value: "54822"
+            - name: SHUTDOWN
+              value: 5s
+            - name: STUB-RECIPIENT
+              value: "-1002513792792"
+            - name: TELEMETRY-ENVIRONMENT
+              value: production
+            - name: TELEMETRY-METRICS-PORT
+              value: "10004"
+            - name: TELEMETRY-SERVICE-NAME
+              value: notify-service
+            - name: TELEMETRY-SERVICE-VERSION
+              value: 1.0.0
+            - name: TELEMETRY-TRACE-ENDPOINT
+              value: jaeger:4317
+          image: ghcr.io/netscrawler/restaurant-is-notify:latest
+          name: notify
+          ports:
+            - containerPort: 54822
+              protocol: TCP
+            - containerPort: 10004
+              protocol: TCP
+      restartPolicy: Always

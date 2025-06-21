@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: order-service
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: order-service
+    spec:
+      containers:
+        - env:
+            - name: DB-HOST
+              value: order-db
+            - name: DB-NAME
+              value: order
+            - name: DB-PASSWORD
+              value: postgres
+            - name: DB-POOL-MAX-CONN
+              value: "20"
+            - name: DB-POOL-MAX-CONN-LIFETIME
+              value: 2h
+            - name: DB-PORT
+              value: "5435"
+            - name: DB-SSL-MODE
+              value: disable
+            - name: DB-TYPE
+              value: postgres
+            - name: DB-USER
+              value: postgres
+            - name: ENV
+              value: prod
+            - name: GRPC-SERVER-ADDRESS
+              value: localhost
+            - name: GRPC-SERVER-PORT
+              value: "50051"
+            - name: KAFKA-BROKERS
+              value: kafka:9092
+            - name: KAFKA-RETRY-MAX
+              value: "5"
+            - name: KAFKA-RETURN-SUCCESSES
+              value: "true"
+            - name: KAFKA-TOPIC
+              value: events
+            - name: MENU-CLIENT-ADDRESS
+              value: menu-service:50052
+            - name: MENU-CLIENT-BASE-DELAY
+              value: 10s
+            - name: MENU-CLIENT-MAX-DELAY
+              value: 5s
+            - name: MENU-CLIENT-MIN-CONNECT-TIMEOUT
+              value: 5s
+            - name: MENU-CLIENT-MULTIPLIER
+              value: "1.5"
+            - name: PROCESS-TIMEOUT
+              value: 30s
+            - name: TELEMETRY-ENVIRONMENT
+              value: production
+            - name: TELEMETRY-METRICS-PORT
+              value: "10005"
+            - name: TELEMETRY-SERVICE-NAME
+              value: order-service
+            - name: TELEMETRY-SERVICE-VERSION
+              value: 1.0.0
+            - name: TELEMETRY-TRACE-ENDPOINT
+              value: jaeger:4317
+          image: ghcr.io/netscrawler/restaurant-is-order-service:latest
+          name: order-service
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+            - containerPort: 10005
+              protocol: TCP
+      restartPolicy: Always

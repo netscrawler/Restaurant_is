@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: metabase-db
+  name: metabase-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: metabase-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: metabase-db
+    spec:
+      containers:
+        - args:
+            - postgres
+            - -c
+            - port=5438
+          env:
+            - name: POSTGRES-DB
+              value: metabase
+            - name: POSTGRES-PASSWORD
+              value: metabase123
+            - name: POSTGRES-USER
+              value: metabase
+          image: postgres:15
+          livenessProbe:
+            exec:
+              command:
+                - pg-isready -U metabase -p 5438
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+          name: metabase-db
+          ports:
+            - containerPort: 5438
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pgdata
+      restartPolicy: Always
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: pgdata

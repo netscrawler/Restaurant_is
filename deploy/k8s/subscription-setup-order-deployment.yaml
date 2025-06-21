@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: subscription-setup-order
+  name: subscription-setup-order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: subscription-setup-order
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: subscription-setup-order
+    spec:
+      containers:
+        - command:
+            - bash
+            - /setup-subscription.sh
+          env:
+            - name: PGPASSWORD
+              value: replicator-password
+          image: postgres:17
+          name: subscription-setup-order
+          volumeMounts:
+            - mountPath: /setup-subscription.sh
+              name: subscription-setup-order-cm0
+              readOnly: true
+              subPath: setup-subscription.sh
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            items:
+              - key: setup-subscription.sh
+                path: setup-subscription.sh
+            name: subscription-setup-order-cm0
+          name: subscription-setup-order-cm0

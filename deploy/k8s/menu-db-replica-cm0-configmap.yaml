@@ -1,0 +1,81 @@
+apiVersion: v1
+data:
+  001-create-tables.sql: |+
+    CREATE TABLE categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,        -- Название категории: "Супы", "Десерты"
+        description TEXT,                        -- Описание категории (опционально)
+        is-active BOOLEAN DEFAULT TRUE           -- Активна ли категория (скрыть/показать)
+    );
+
+    CREATE INDEX idx-categories-active ON categories(is-active);
+
+    CREATE TABLE dishes (
+        id UUID PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,              -- Название блюда: "Стейк Рибай"
+        description TEXT,                        -- Описание состава и особенностей
+        price NUMERIC(10, 2) NOT NULL
+            CHECK (price > 0),                   -- Цена (например: 1500.50)
+        category-id INT NOT NULL
+            REFERENCES categories(id)
+            ON DELETE RESTRICT,                  -- Запрет удаления категории с блюдами
+        cooking-time-min INT
+            CHECK (cooking-time-min > 0),        -- Время приготовления в минутах (опционально)
+        image-url VARCHAR(500),                  -- Ссылка на фото в S3: "https://bucket.s3.amazonaws.com/dishes/123.jpg"
+        is-available BOOLEAN DEFAULT TRUE,       -- Доступно ли для заказа
+        calories INT,                            -- Ккал (опционально)
+
+        created-at TIMESTAMP NOT NULL DEFAULT now(),  -- Дата создания
+        updated-at TIMESTAMP NOT NULL DEFAULT now()   -- Дата последнего обновления
+    );
+
+
+    CREATE INDEX idx-dishes-category ON dishes(category-id);
+    CREATE INDEX idx-dishes-availability ON dishes(is-available);
+
+    INSERT INTO categories (name, description, is-active) VALUES
+    ('Супы', 'Горячие первые блюда', TRUE),
+    ('Салаты', 'Свежие и питательные салаты', TRUE),
+    ('Горячие блюда', 'Основные блюда из мяса, рыбы и овощей', TRUE),
+    ('Гарниры', 'Дополнения к основным блюдам', TRUE),
+    ('Десерты', 'Сладкие блюда и выпечка', TRUE),
+    ('Напитки', 'Безалкогольные напитки', TRUE),
+    ('Завтраки', 'Блюда для утреннего меню', TRUE),
+    ('Пасты', 'Итальянская паста и соусы', TRUE),
+    ('Пицца', 'Разнообразные пиццы', TRUE),
+    ('Соусы', 'Дополнительные соусы к блюдам', TRUE);
+
+  pg-hba-setup.sh: |
+    #!/bin/bash
+    echo "host replication replicator 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg-hba.conf
+  replica-setup.sql: |
+    CREATE SUBSCRIPTION menu-subscription
+    CONNECTION 'host=menu-db port=5434 user=replicator password=replicator-password dbname=menu'
+    PUBLICATION menu-publication;
+  replication-setup.sql: |
+    -- Создание пользователя для репликации, если он не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-roles WHERE rolname = 'replicator') THEN
+          CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'replicator-password';
+       END IF;
+    END $$;
+
+    -- Настройка прав доступа
+    GRANT CONNECT ON DATABASE menu TO replicator;
+    GRANT USAGE ON SCHEMA public TO replicator;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO replicator;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO replicator;
+
+    -- Создание публикации, если она не существует
+    DO $$
+    BEGIN
+       IF NOT EXISTS (SELECT FROM pg-publication WHERE pubname = 'menu-publication') THEN
+          CREATE PUBLICATION menu-publication FOR ALL TABLES;
+       END IF;
+    END $$;
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: menu-db-replica
+  name: menu-db-replica-cm0

@@ -1,0 +1,93 @@
+apiVersion: v1
+data:
+  promtail-config.yaml: |
+    server:
+      http-listen-port: 9080
+      grpc-listen-port: 0
+
+    positions:
+      filename: /tmp/positions.yaml
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+
+    scrape-configs:
+      - job-name: docker
+        docker-sd-configs:
+          - host: unix:///var/run/docker.sock
+            refresh-interval: 5s
+        relabel-configs:
+          - source-labels: [--meta-docker-container-name]
+            target-label: container-name
+          - source-labels:
+              [--meta-docker-container-label-com-docker-compose-service]
+            target-label: service
+        pipeline-stages:
+          - docker: {}
+          - json:
+              expressions:
+                time: time
+                level: level
+                msg: msg
+                channel: channel
+                method: method
+                request: request
+                response: response
+                trace-id: trace-id
+                recipient: recipient
+                query: query
+                headers: headers
+                body: body
+                client-ip: client-ip
+                user-agent: user-agent
+                host: host
+                proto: proto
+                message: message
+                status: status
+                latency: latency
+                path: path
+                service: service
+                storage: storage
+                func: func
+                bucket: bucket
+                addr: addr
+                server: server
+                content-type: content-type
+          - labels:
+              level: level
+              msg: msg
+              channel: channel
+              method: method
+              request: request
+              response: response
+              trace-id: trace-id
+              recipient: recipient
+              query: query
+              headers: headers
+              body: body
+              client-ip: client-ip
+              user-agent: user-agent
+              host: host
+              proto: proto
+              message: message
+              status: status
+              latency: latency
+              path: path
+              service: service
+              storage: storage
+              func: func
+              bucket: bucket
+              addr: addr
+              server: server
+              content-type: content-type
+
+          - timestamp:
+              source: time
+              format: RFC3339Nano
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: promtail
+  name: promtail-cm1

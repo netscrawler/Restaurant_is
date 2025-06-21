@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+  setup-subscription.sh: |
+    #!/bin/bash
+
+    # Ждём, пока Postgres точно запустится и начнёт слушать TCP
+    until pg-isready -h user-db -p 5439 -U postgres; do
+      echo "Waiting for PostgreSQL to be ready..."
+      sleep 1
+    done
+
+    # Проверка, есть ли уже подписка
+    psql -U postgres -d user -tc "SELECT 1 FROM pg-subscription WHERE subname = 'user-subscription'" | grep -q 1 || \
+    psql -U postgres -d user -c "CREATE SUBSCRIPTION order-subscription CONNECTION 'host=user-db port=5439 user=replicator password=replicator-password dbname=user' PUBLICATION user-publication;"
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: subscription-setup-user
+  name: subscription-setup-user-cm0

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+    kompose.version: 1.36.0 (ae2a39403)
+  labels:
+    io.kompose.service: user-service
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: user-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-env.yaml -o k8s
+        kompose.version: 1.36.0 (ae2a39403)
+      labels:
+        io.kompose.service: user-service
+    spec:
+      containers:
+        - env:
+            - name: DB-HOST
+              value: user-db
+            - name: DB-NAME
+              value: user
+            - name: DB-PASSWORD
+              value: postgres
+            - name: DB-POOL-MAX-CONN
+              value: "20"
+            - name: DB-POOL-MAX-CONN-LIFETIME
+              value: 2h
+            - name: DB-PORT
+              value: "5439"
+            - name: DB-SSL-MODE
+              value: disable
+            - name: DB-TYPE
+              value: postgres
+            - name: DB-USER
+              value: postgres
+            - name: ENV
+              value: prod
+            - name: GRPC-SERVER-ADDRESS
+              value: localhost
+            - name: GRPC-SERVER-PORT
+              value: "50045"
+            - name: KAFKA-BROKERS
+              value: kafka:9092
+            - name: KAFKA-GROUP-ID
+              value: user-service-group
+            - name: KAFKA-TOPIC
+              value: user-events
+            - name: TELEMETRY-ENVIRONMENT
+              value: production
+            - name: TELEMETRY-METRICS-PORT
+              value: "10006"
+            - name: TELEMETRY-SERVICE-NAME
+              value: user-service
+            - name: TELEMETRY-SERVICE-VERSION
+              value: 1.0.0
+            - name: TELEMETRY-TRACE-ENDPOINT
+              value: jaeger:4317
+          image: ghcr.io/netscrawler/restaurant-is-user-service:latest
+          name: user-service
+          ports:
+            - containerPort: 50045
+              protocol: TCP
+            - containerPort: 10006
+              protocol: TCP
+      restartPolicy: Always
